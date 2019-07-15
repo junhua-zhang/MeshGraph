@@ -1,0 +1,8 @@
+# CUDA
+cuda_devices: '0'
+
+# model
+load_model: 'MeshNet_best_9192.pkl'
+
+# dataset
+dataset: 'modelnet40'
