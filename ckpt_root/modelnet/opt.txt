@@ -1,0 +1,13 @@
+------------ Options -------------
+ckpt: ./ckpt
+ckpt_root: ./ckpt_root
+continue_train: False
+cuda: [0]
+datasets: datasets/modelnet40
+is_train: True
+last_epoch: latest
+lr_policy: step
+milestones: [30, 60]
+name: modelnet
+task: cls
+-------------- End ----------------
