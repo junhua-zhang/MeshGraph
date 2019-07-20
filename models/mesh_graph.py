@@ -1,6 +1,8 @@
 import torch
 import torch.nn
 import os.path as osp
+from . import networks
+from models.optimizer import adabound
 
 
 class mesh_graph:
@@ -16,7 +18,16 @@ class mesh_graph:
 
         # init mesh data
         pass
-        
+
         # init network
         self.net.train(self.is_train)
         pass
+
+        # criterion
+        self.loss = networks.get_loss(self.opt).to(self.device)
+
+        if self.is_train:
+            self.optimizer = adabound.AdaBound(
+                self.net.parameters(), lr=self.opt.lr, final_lr=self.opt.final_lr)
+            self.scheduler = networks.get_scheduler(self.optimizer, self.opt)
+            

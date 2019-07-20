@@ -3,4 +3,5 @@
 ## run the training
 python train.py \
 --datasets datasets/modelnet40 \
---name modelnet 
+--name modelnet \
+--batch_size 32

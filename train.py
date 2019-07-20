@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # load dataset
     dataset = ModelNet(root=opt.datasets, name='40')
     print('# training meshes = %d' % len(dataset))
-    loader = DataLoader(dataset, batch_size=32, shuffle=True)
+    loader = DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
     model = create_model(opt)
     writer = Writer(opt)
     total_steps = 0

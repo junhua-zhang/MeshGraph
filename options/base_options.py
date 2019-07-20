@@ -31,6 +31,19 @@ class base_options:
         self.parser.add_argument(
             '--name', type=str, default='debug', help='model saved path'
         )
+        # network parameter
+        self.parser.add_argument(
+            '--batch_size', type=int, default=64, help='mini batch size'
+        )
+        self.parser.add_argument(
+            '--arch', type=str, default='meshconv', help='model arch'
+        )
+        self.parser.add_argument(
+            '--init_type', type=str, default='normal', help='network initialization [normal|xavier|kaiming|orthogonal]'
+        )
+        self.parser.add_argument(
+            '--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.'
+        )
 
     def parse(self):
         if not self.is_init:
