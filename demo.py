@@ -1,4 +1,4 @@
-# import torch
+import torch
 # from torch_geometric.data import Data
 
 # edge_index = torch.tensor([[0, 1, 1, 2],
@@ -85,3 +85,32 @@
 # str_1 = '0 ,1 ,2'
 # ids = str_1.split(',')
 # print(ids)
+
+
+def remove_isolated_vertices(data):
+    mask = torch.zeros(data.num_nodes, dtype=torch.uint8)
+    mask[data.edge_index.flatten()] = 1
+
+    assoc = torch.full((data.num_nodes, ), -1, dtype=torch.long)
+    assoc[mask] = torch.arange(mask.sum())
+
+    new_edge_index = assoc[data.edge_index]
+    new_x = data.x[mask]
+    new_pos = data.pos[mask]
+    return new_x, new_pos, new_edge_index
+
+data = {}
+
+x = torch.tensor(
+    [-1, 0, 1],
+    [0, 1, 1],
+    [1, 0, 1],
+    [0, -1, 1],
+    [3, 0, 1]
+)
+data.x = x
+
+edge_index = torch.tensor(
+    [0, 0, 0, 1, 1, 2, 2, 2, 3, 3],
+    [1, 2, 3, 0, 2, 0, 1, 3, 0, 2]
+)
