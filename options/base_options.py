@@ -18,6 +18,9 @@ class base_options:
         self.parser.add_argument(
             '--task', choices={'cls', 'seg'}, default='cls', help='task for network to loader model'
         )
+        self.parser.add_argument(
+            '--nclasses', type=int, default=40, help='num classes for classify'
+        )
         # general arg
         self.parser.add_argument(
             '--cuda', type=str, default='0', help='cuda device number e.g. 0 0,1,2, 0,2. use -1 for CPU'

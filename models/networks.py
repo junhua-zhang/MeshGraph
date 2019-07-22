@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-
+from torch.nn import init
 from torch.optim import lr_scheduler
 import torch.nn.functional as F
-
+from torch_geometric.nn import GINConv
 
 def init_weights(net, init_type, init_gain):
     def init_func(m):
@@ -69,7 +69,8 @@ class MeshGraph(nn.Module):
 
     def __init__(self):
         super(MeshGraph, self).__init__()
+        self.fc = nn.Linear(32, 16)
 
     def forward(self, x):
-
+        x = self.fc(x)
         return x

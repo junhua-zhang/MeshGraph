@@ -4,4 +4,5 @@
 python train.py \
 --datasets datasets/modelnet40 \
 --name modelnet \
---batch_size 32
+--batch_size 32 \
+--nclasses 40

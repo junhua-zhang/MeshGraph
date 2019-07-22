@@ -17,12 +17,12 @@ class train_options(base_options):
         self.parser.add_argument(
             '--final_lr', default=0.1, type=float, help='final learning rate'
         )
-        # self.parser.add_argument(
-        #     '--momentum', default=0.9, type=float, help='momentum'
-        # )
-        # self.parser.add_argument(
-        #     '--weight_decay', default=0.0005, type=float, help='weight decay'
-        # )
+        self.parser.add_argument(
+            '--epoch', type=int, default=3000, help='training epoch'
+        )
+        self.parser.add_argument(
+            '--frequency', type=int, default=10, help='training epoch'
+        )
         self.parser.add_argument(
             '--lr_policy', default='step', type=str, help='learning rate policy: step|'
         )
