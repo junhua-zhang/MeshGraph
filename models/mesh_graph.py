@@ -51,7 +51,7 @@ class mesh_graph:
     def set_input_data(self, data):
         '''set input data'''
         print(data)
-
+        print(data.num_nodes)
         gt_label = data.y
         edge_index = data.edge_index
         vertex_features = data.pos
