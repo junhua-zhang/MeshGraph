@@ -1,6 +1,6 @@
 ------------ Options -------------
 arch: meshconv
-batch_size: 32
+batch_size: 1
 ckpt: ./ckpt
 ckpt_root: ./ckpt_root
 continue_train: False

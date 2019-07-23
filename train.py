@@ -23,10 +23,18 @@ if __name__ == '__main__':
         count = 0
 
         for i,data in enumerate(loader):
+
+            print(i)
+            print(data)
+            print(data.pos)
+            print(data.face)
+            print(data.edge_index)
+            print(data.x)
+            print(data.num_nodes)
+            break
             total_steps += opt.batch_size
             model.set_input_data(data)
             if total_steps % opt.frequency == 0 :
                 pass
-            print(i)
-            print(data)
+            
         break
