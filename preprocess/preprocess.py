@@ -1,9 +1,32 @@
 import torch
-from torch_geometric.utils import to_undirected, segregate_self_loops
-
+from torch_geometric.utils import to_undirected
+from models.layers.mesh import Mesh
 
 def maybe_num_nodes(index, num_nodes=None):
     return index.max().item() + 1 if num_nodes is None else num_nodes
+
+
+def segregate_self_loops(edge_index, edge_attr=None):
+    r"""Segregates self-loops from the graph.
+
+    Args:
+        edge_index (LongTensor): The edge indices.
+        edge_attr (Tensor, optional): Edge weights or multi-dimensional
+            edge features. (default: :obj:`None`)
+
+    :rtype: (:class:`LongTensor`, :class:`Tensor`, :class:`LongTensor`,
+        :class:`Tensor`)
+    """
+
+    mask = edge_index[0] != edge_index[1]
+    inv_mask = ~mask
+
+    loop_edge_index = edge_index[:, inv_mask]
+    loop_edge_attr = None if edge_attr is None else edge_attr[inv_mask]
+    edge_index = edge_index[:, mask]
+    edge_attr = None if edge_attr is None else edge_attr[mask]
+
+    return edge_index, edge_attr, loop_edge_index, loop_edge_attr
 
 
 def remove_isolated_nodes(edge_index, edge_attr=None, num_nodes=None):
@@ -92,7 +115,7 @@ class FaceToGraph(object):
         self.remove_faces = remove_faces
 
     def __call__(self, data):
-        face = data.face
+        mesh_grap = Mesh(data.pos, data.face)
 
         return data
 
