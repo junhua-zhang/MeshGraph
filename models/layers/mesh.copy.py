@@ -19,38 +19,31 @@ class Mesh:
     def create_graph(self):
         self.edge_index.long()
         pos = self.vertexes[self.faces]
-        p1 = pos[:, 0, :]
-        p2 = pos[:, 1, :]
-        p3 = pos[:, 2, :]
-        print(pos)
-        print(pos.size())
-        print(p1)
-        print(p1.size())
-        # for i, face in enumerate(self.faces):
-        #     print('{}th face processing..'.format(i))
-        #     x, y, z = self.vertexes[face, :]
-        #     # find related face and add to graph
-        #     related_face = torch.tensor(find_relate(
-        #         face, self.faces, i), dtype=torch.long).view(-1, 2)
+        for i, face in enumerate(self.faces):
+            print('{}th face processing..'.format(i))
+            x, y, z = self.vertexes[face, :]
+            # find related face and add to graph
+            related_face = torch.tensor(find_relate(
+                face, self.faces, i), dtype=torch.long).view(-1, 2)
 
-        #     face = Face(x, y, z)
-        #     # stack the tensor value
+            face = Face(x, y, z)
+            # stack the tensor value
 
-        #     if self.nodes.size(0):
-        #         self.nodes = torch.cat(
-        #             (self.nodes, face.to_tensor_vecter()), dim=0)
-        #     else:
-        #         self.nodes = face.to_tensor_vecter()
+            if self.nodes.size(0):
+                self.nodes = torch.cat(
+                    (self.nodes, face.to_tensor_vecter()), dim=0)
+            else:
+                self.nodes = face.to_tensor_vecter()
 
-        #     # add edge_index
-        #     if self.edge_index.size(0):
-        #         self.edge_index = torch.cat(
-        #             (self.edge_index, related_face), dim=0)
-        #     else:
-        #         self.edge_index = related_face
-
-        #     if i > 20:
-        #         break
+            # add edge_index
+            if self.edge_index.size(0):
+                self.edge_index = torch.cat(
+                    (self.edge_index, related_face), dim=0)
+            else:
+                self.edge_index = related_face
+            
+            if i > 20:
+                break
         # print(self.nodes)
         # print(self.edge_index)
 
