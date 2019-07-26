@@ -87,51 +87,63 @@ import torch
 # print(ids)
 
 
-def remove_isolated_vertices(data):
-    mask = torch.zeros(data['num_nodes'], dtype=torch.uint8)
-    mask[data['edge_index'].flatten()] = 1
-    assoc = torch.full((data['num_nodes'], ), -1, dtype=torch.long)
-    assoc[mask] = torch.arange(mask.sum())
-    print(assoc)
-    new_edge_index = assoc[data['edge_index']]
-    print(new_edge_index)
-    new_pos = data['pos'][mask]
-    return new_pos, new_edge_index
+# def remove_isolated_vertices(data):
+#     mask = torch.zeros(data['num_nodes'], dtype=torch.uint8)
+#     mask[data['edge_index'].flatten()] = 1
+#     assoc = torch.full((data['num_nodes'], ), -1, dtype=torch.long)
+#     assoc[mask] = torch.arange(mask.sum())
+#     print(assoc)
+#     new_edge_index = assoc[data['edge_index']]
+#     print(new_edge_index)
+#     new_pos = data['pos'][mask]
+#     return new_pos, new_edge_index
 
 
-data = {}
+# data = {}
 
-x = torch.tensor(
-    [
-        [-1, 0, 1],
-        [0, 1, 1],
-        [1, 0, 1],
-        [0, -1, 1],
-        [3, 0, 1]
-    ]
-)
-data['x'] = x
-data['pos'] = x
-edge_index = torch.tensor(
-    [
-        [0, 0, 0, 1, 1, 2, 2, 2, 3, 3],
-        [1, 2, 3, 0, 2, 0, 1, 3, 0, 2]
-    ]
-)
+# x = torch.tensor(
+#     [
+#         [-1, 0, 1],
+#         [0, 1, 1],
+#         [1, 0, 1],
+#         [0, -1, 1],
+#         [3, 0, 1]
+#     ]
+# )
+# data['x'] = x
+# data['pos'] = x
+# edge_index = torch.tensor(
+#     [
+#         [0, 0, 0, 1, 1, 2, 2, 2, 3, 3],
+#         [1, 2, 3, 0, 2, 0, 1, 3, 0, 2]
+#     ]
+# )
 
-data['edge_index'] = edge_index
-data['num_nodes'] = 5
+# data['edge_index'] = edge_index
+# data['num_nodes'] = 5
 
-a, b = remove_isolated_vertices(data)
+# a, b = remove_isolated_vertices(data)
 
-# print(a)
-# print(b)
+# # print(a)
+# # print(b)
 
-p = torch.tensor([0,1,2,3,-1])
+# p = torch.tensor([0,1,2,3,-1])
 
-mask = torch.tensor([
-    [0,1,2,3],
-    [1,2,3,4]
+# mask = torch.tensor([
+#     [0,1,2,3],
+#     [1,2,3,4]
+# ])
+
+# print(p[mask])
+
+b = torch.tensor([0,0,1,2])
+a = torch.tensor([
+    [0, 0],
+    [0, 1],
+    [1, 2],
+    [2, 3]
 ])
 
-print(p[mask])
+
+c = torch.argsort(b)
+print(c)

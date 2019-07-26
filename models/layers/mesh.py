@@ -1,10 +1,11 @@
 import torch
 import numpy as np
+import time
 
 
 class Mesh:
     '''
-    mesh graph obj contains pos edge_index and x 
+    mesh graph obj contains pos edge_index and x
     x reprensent feature in face obj
     edge_index is the sparse matrix of adj matrix
     pos represent position matrix
@@ -12,150 +13,104 @@ class Mesh:
 
     def __init__(self, vertexes, faces):
         self.vertexes = vertexes
-        self.faces = faces.t()
-        self.edge_index = self.nodes = torch.tensor([])
+        self.faces = faces.t()[:10, :]
+        self.edge_index = self.nodes = None
+        self.sorted_st_dict = self.sorted_ed_dict = None
+        self.sorted_st = self.sorted_ed = None
+        # cal time
+        start_time = time.time()
         self.create_graph()
+        end_time = time.time()
+        print('take {} s time for translate'.format(end_time-start_time))
 
     def create_graph(self):
-        self.edge_index.long()
+        # conat center ox oy oz norm
         pos = self.vertexes[self.faces]
-        p1 = pos[:, 0, :]
-        p2 = pos[:, 1, :]
-        p3 = pos[:, 2, :]
-        print(pos)
-        print(pos.size())
-        print(p1)
-        print(p1.size())
-        # for i, face in enumerate(self.faces):
-        #     print('{}th face processing..'.format(i))
-        #     x, y, z = self.vertexes[face, :]
-        #     # find related face and add to graph
-        #     related_face = torch.tensor(find_relate(
-        #         face, self.faces, i), dtype=torch.long).view(-1, 2)
+        point_x, point_y, point_z = pos[:, 0, :], pos[:, 1, :], pos[:, 2, :]
+        centers = get_inner_center_vec(
+            point_x, point_y, point_z
+        )
+        ox, oy, oz = get_three_vec(centers, point_x, point_y, point_z)
+        norm = get_unit_norm_vec(point_x, point_y, point_z)
+        self.nodes = torch.cat((centers, ox, oy, oz, norm), dim=1)
+        # init neighbor dict to reduce time to be o(nlogn)
+        self.init_neighbor_dict(self.faces)
 
-        #     face = Face(x, y, z)
-        #     # stack the tensor value
+    def init_neighbor_dict(self, faces):
+        # concat  point_a point_b index
+        # and get edge
+        index = torch.arange(faces.size(0))
+        edge_A = torch.cat((faces[:, :2], index.view(-1, 1)), dim=1)
+        edge_B = torch.cat((faces[:, 1:], index.view(-1, 1)), dim=1)
+        edge_C = torch.cat((faces[:, ::2], index.view(-1, 1)), dim=1)
+        edge_num = torch.cat((edge_A, edge_B, edge_C), dim=0)
+        # sort start_point and end_point
+        start_point = edge_num[:, 0]
+        end_point = edge_num[:, 1]
+        # sort the index
+        sorted_a, indices_a = torch.sort(start_point)
+        sorted_b, indices_b = torch.sort(end_point)
 
-        #     if self.nodes.size(0):
-        #         self.nodes = torch.cat(
-        #             (self.nodes, face.to_tensor_vecter()), dim=0)
-        #     else:
-        #         self.nodes = face.to_tensor_vecter()
+        sorted_st = edge_num[indices_a, :]
+        sorted_ed = edge_num[indices_b, :]
+        print(sorted_st)
 
-        #     # add edge_index
-        #     if self.edge_index.size(0):
-        #         self.edge_index = torch.cat(
-        #             (self.edge_index, related_face), dim=0)
-        #     else:
-        #         self.edge_index = related_face
+        # add indices dict for edge select
+        sorted_index = torch.arange(faces.size(0)).view(-1, 1)
+        sorted_st_with_index = torch.cat((sorted_st, sorted_index), dim=1)
 
-        #     if i > 20:
-        #         break
-        # print(self.nodes)
-        # print(self.edge_index)
+        # sorted_st_unique, sorted_st_index = torch.unique(
+        #     sorted_st_with_index, return_inverse=True)
+        # sorted_st_index = sorted_st_index[:sorted_st_unique.size(0)]
+
+        print(sorted_index)
+        print(sorted_st_with_index)
 
 
-def find_relate(pos_a, pos_list, i):
+def get_inner_center_vec(v1, v2, v3):
     '''
-    at least i relavent to itself
+    v1 v2 v3 represent 3 vertexes of triangle
+    v1 (n,3)
     '''
-    result = []
-    for index, pos_b in enumerate(pos_list):
-        if is_contain(pos_a, pos_b):
-            result.append([i, index])
-    return result
+    a = get_distance_vec(v2, v3)
+    b = get_distance_vec(v3, v1)
+    c = get_distance_vec(v1, v2)
+    x = torch.stack((v1[:, 0], v2[:, 0], v3[:, 0]), dim=1)
+    y = torch.stack((v1[:, 1], v2[:, 1], v3[:, 1]), dim=1)
+    z = torch.stack((v1[:, 2], v2[:, 2], v3[:, 2]), dim=1)
+    dis = torch.stack((a, b, c), dim=1)
+    return torch.stack((
+        torch.sum((x * dis) / (a+b+c).repeat(3, 1).t(), dim=1),
+        torch.sum((y * dis) / (a+b+c).repeat(3, 1).t(), dim=1),
+        torch.sum((z * dis) / (a+b+c).repeat(3, 1).t(), dim=1),
+    ), dim=1)
 
 
-def is_contain(a, b):
+def get_distance_vec(v1, v2):
     '''
-    return True if a contains b else false 
-    such as [1,2,3]
-            [2,4,5]
-    will return True 
+    get distance between
+    vecter_1 and vecter_2
+    v1 : (x,y,z)
     '''
-    return True if [x for x in a if x in b] else False
+    return torch.sqrt(torch.sum((v1-v2)**2, dim=1))
 
 
-class Face:
+def get_unit_norm_vec(v1, v2, v3):
     '''
-    every face of each mesh.
-    a mesh will contains many face
-    x,y,z represent (x,y,z) index of point  
+    xy X xz
+    （y1z2-y2z1,x2z1-x1z2,x1y2-x2y1）
     '''
-
-    def __init__(self, x, y, z):
-        self.norm = None
-        self.ox = self.oy = self.oz = None
-        self.center = None
-
-        self.initialize(x, y, z)
-
-    def initialize(self, x, y, z):
-        o = get_inner_center(x, y, z)
-        self.center = torch.tensor([_ for _ in o])
-        self.ox, self.oy, self.oz = get_three_vector(o, x, y, z)
-        self.norm = torch.tensor([_ for _ in get_norm(x, y, z)])
-        self.ox = torch.tensor([_ for _ in self.ox])
-        self.oy = torch.tensor([_ for _ in self.oy])
-        self.oz = torch.tensor([_ for _ in self.oz])
-
-    def to_tensor_vecter(self):
-        '''
-        [center ox  oy  oz   norm ] 
-            3   3   3   3    3
-        '''
-        return torch.cat((self.center, self.ox, self.oy, self.oz, self.norm), dim=0)
+    xy = v2-v1
+    xz = v3-v1
+    x1, y1, z1 = xy[:, 0], xy[:, 1], xy[:, 2]
+    x2, y2, z2 = xz[:, 0], xz[:, 1], xz[:, 2]
+    norm = torch.stack((y1*z2-y2*z1, x2*z1-x1*z2, x1*y2-x2*y1), dim=1)
+    vec_len = torch.sqrt(torch.sum(norm, dim=1))
+    return norm / vec_len.repeat(3, 1).t()
 
 
-def get_inner_center(x, y, z):
-    '''
-    get inner point by x y z
-    A(x1,y1),B(x2,y2),C(x3,y3),BC=a,CA=b,AB=c
-    x (X1,Y1,Z1)
-    y (X2,Y2,Z2)
-    z (X3,Y3,Z3)
-    （（aX1+bX2+cX3)/(a+b+c),（aY1+bY2+cY3)/(a+b+c) , （aZ1+bZ2+cZ3)/(a+b+c) ）
-    '''
-    x1, y1, z1 = x
-    x2, y2, z2 = y
-    x3, y3, z3 = z
-    a = get_distance(y, z)
-    b = get_distance(z, x)
-    c = get_distance(x, y)
-    return (a*x1+b*x2+c*x3)/(a+b+c), (a*y1+b*y2+c*y3)/(a+b+c), (a*z1+b*z2+c*z3)/(a+b+c)
-
-
-def get_three_vector(o, x, y, z):
+def get_three_vec(center, v1, v2, v3):
     '''
     return ox oy oz vector
     '''
-    xo, yo, zo = o
-    x1, y1, z1 = x
-    x2, y2, z2 = y
-    x3, y3, z3 = z
-    return (x1-xo, y1-yo, z1-zo), (x2-xo, y2-yo, z2-zo), (x3-xo, y3-yo, z3-zo)
-
-
-def get_norm(x, y, z):
-    '''
-    xy X xz 
-    （y1z2-y2z1,x2z1-x1z2,x1y2-x2y1）
-    '''
-    x1, y1, z1 = x
-    x2, y2, z2 = y
-    x3, y3, z3 = z
-    xy = (x2-x1, y2-y1, z2-z1)
-    xz = (x3-x1, y3-y1, z3-z1)
-    x1, y1, z1 = xy
-    x2, y2, z2 = xz
-    return y1*z2-y2*z1, x2*z1-x1*z2, x1*y2-x2*y1
-
-
-def get_distance(a, b):
-    '''
-    get distance between a and b 
-    a and b is (x,y,z)
-    '''
-    x1, y1, z1 = a
-    x2, y2, z2 = b
-    return np.sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
+    return v1-center, v2-center, v3-center
