@@ -24,6 +24,15 @@ class train_options(base_options):
             '--frequency', type=int, default=10, help='training epoch'
         )
         self.parser.add_argument(
+            '--epoch_frequency', type=int, default=1, help='epoch to print'
+        )
+        self.parser.add_argument(
+            '--loop_frequency', type=int, default=250, help='iters epoch to print'
+        )
+        self.parser.add_argument(
+            '--test_frequency', type=int, default=1, help='test epoch'
+        )
+        self.parser.add_argument(
             '--lr_policy', default='step', type=str, help='learning rate policy: step|'
         )
         self.parser.add_argument(

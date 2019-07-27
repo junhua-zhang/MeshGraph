@@ -3,7 +3,8 @@ import torch.nn
 import os.path as osp
 from . import networks
 from models.optimizer import adabound
-from torch_geometric.utils import remove_self_loops,contains_self_loops,contains_isolated_nodes
+from torch_geometric.utils import remove_self_loops, contains_self_loops, contains_isolated_nodes
+
 
 class mesh_graph:
     def __init__(self, opt):
@@ -35,6 +36,24 @@ class mesh_graph:
         if not self.is_train or opt.continue_train:
             self.load_state(opt.last_epoch)
 
+    def test(self):
+        """tests model
+        returns: number correct and total number
+        """
+        with torch.no_grad():
+            out = self.forward()
+            # compute number of correct
+            pred_class = torch.max(out, dim=1)
+            label_class = self.labels
+            correct = self.get_accuracy(pred_class, label_class)
+        return correct, len(label_class)
+
+      def get_accuracy(self, pred, labels):
+        """computes accuracy for classification / segmentation """
+        if self.opt.task == 'cls':
+            correct = pred.eq(labels).sum()
+        return correct
+
     def load_state(self, last_epoch):
         ''' load epoch '''
         load_file = '%s_net.pth' % last_epoch
@@ -50,19 +69,40 @@ class mesh_graph:
 
     def set_input_data(self, data):
         '''set input data'''
-        print(data)
-        print(data.num_nodes)
+
         gt_label = data.y
         edge_index = data.edge_index
-        vertex_features = data.pos
+        nodes_features = data.x
 
-        print(contains_self_loops(edge_index))
-        print(contains_isolated_nodes(edge_index,data.num_nodes))
-        print(data.norm)
         self.labels = gt_label.to(self.device).long()
-        self.vertexes = vertex_features.float().to(self.device)
-        self.edges = edge_index.t().long().to(self.device)
+        self.edge_index = edge_index.to(self.device).long()
+        self.nodes_features = nodes_features.to(self.device).float()
 
-        print(self.vertexes.size())
-        print(self.edges.size())
-        print(self.edges)
+    def forward(self):
+        out = self.net(self.nodes_features, self.edge_index)
+        return out
+
+    def backward(self, out):
+        self.loss_val = self.loss(self.out, self.labels)
+        self.loss_val.backward()
+
+    def optimize(self):
+        '''
+        optimize paramater
+        '''
+        self.optimizer.zero_grad()
+        out = self.forward()
+        self.backward(out)
+        self.optimizer.step()
+
+    def save_network(self, which_epoch):
+        '''
+        save network to disk
+        '''
+        save_filename = '%s_net.pth' % (which_epoch)
+        save_path = osp.join(self.save_dir, save_filename)
+        if len(self.cuda) > 0 and torch.cuda.is_available():
+            torch.save(self.net.module.cpu().state_dict(), save_path)
+            self.net.cuda(self.cuda[0])
+        else:
+            torch.save(self.net.cpu().state_dict(), save_path)

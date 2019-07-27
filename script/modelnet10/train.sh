@@ -2,7 +2,7 @@
 
 ## run the training
 python train.py \
---datasets datasets/modelnet40 \
+--datasets datasets/modelnet10 \
 --name modelnet \
 --batch_size 1 \
---nclasses 40
+--nclasses 10

@@ -18,6 +18,8 @@ class Mesh:
         # find point and face indices
         self.sorted_point_to_face = None
         self.sorted_point_to_face_index_dict = None
+
+        print('start translate graph')
         # create graph
         self.create_graph()
 
@@ -32,9 +34,12 @@ class Mesh:
         norm = get_unit_norm_vec(point_x, point_y, point_z)
         # cat the vecter
         self.nodes = torch.cat((centers, ox, oy, oz, norm), dim=1)
+        print('get_edge_index')
         # init neighbor dict to reduce time to be o(nlogn)
         self.init_neighbor_dict(self.faces)
+        print('init_neighbor_dict_done')
         self.get_edge_index(self.faces)
+        print('get edge_index_done')
 
     def init_neighbor_dict(self, faces):
         # concat  point_a point_b index
@@ -59,26 +64,49 @@ class Mesh:
             sorted_point[:, 0])
 
     def get_edge_index(self, faces):
-        edge_index = None
+        edge_index = torch.tensor([])
         for index, value in enumerate(faces):
             total_num = 0
             # index_tensor = torch.tensor(index).repeat(1, 1)
-            for v in value:
-                if v.item() in self.sorted_point_to_face_index_dict:
-                    v_indeces = self.sorted_point_to_face_index_dict[
-                        v.item()
-                    ]
-                    v_face_index_vec = self.sorted_point_to_face[v_indeces, 1]
-                    size = v_face_index_vec.size(0)
-                    index_tensor = torch.tensor(index).repeat(size)
-                    temp_edge = torch.stack(
-                        (index_tensor, v_face_index_vec),
-                        dim=1
-                    )
-                    edge_index = torch.cat(
-                        (edge_index, temp_edge), dim=0) if edge_index is not None else temp_edge
-                else:
-                    raise ValueError('point', 'bad features')
+            v1, v2, v3 = value
+            v_indeces = self.sorted_point_to_face_index_dict[
+                v1.item()
+            ]
+            v_face_index_vec = self.sorted_point_to_face[v_indeces, 1]
+            size = v_face_index_vec.size(0)
+            index_tensor = torch.tensor(index).repeat(size)
+            temp_edge = torch.stack(
+                (index_tensor, v_face_index_vec),
+                dim=1
+            )
+            edge_index = torch.cat(
+                (edge_index, temp_edge), dim=0) if edge_index.size(0) > 0 else temp_edge
+
+            v_indeces = self.sorted_point_to_face_index_dict[
+                v2.item()
+            ]
+            v_face_index_vec = self.sorted_point_to_face[v_indeces, 1]
+            size = v_face_index_vec.size(0)
+            index_tensor = torch.tensor(index).repeat(size)
+            temp_edge = torch.stack(
+                (index_tensor, v_face_index_vec),
+                dim=1
+            )
+            edge_index = torch.cat(
+                (edge_index, temp_edge), dim=0) if edge_index.size(0) > 0 else temp_edge
+
+            v_indeces = self.sorted_point_to_face_index_dict[
+                v3.item()
+            ]
+            v_face_index_vec = self.sorted_point_to_face[v_indeces, 1]
+            size = v_face_index_vec.size(0)
+            index_tensor = torch.tensor(index).repeat(size)
+            temp_edge = torch.stack(
+                (index_tensor, v_face_index_vec),
+                dim=1
+            )
+            edge_index = torch.cat(
+                (edge_index, temp_edge), dim=0) if edge_index.size(0) > 0 else temp_edge
         self.edge_index = edge_index
 
 

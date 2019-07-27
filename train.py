@@ -5,13 +5,13 @@ from preprocess.preprocess import FaceToGraph
 from torch_geometric.data import DataLoader
 from models import create_model
 from util.writer import Writer
-
+from test import run_test
 
 if __name__ == '__main__':
     opt = train_options().parse()
 
     # load dataset
-    dataset = ModelNet(root=opt.datasets, name='40',
+    dataset = ModelNet(root=opt.datasets, name='10',
                        pre_transform=FaceToGraph(remove_faces=True))
     print('# training meshes = %d' % len(dataset))
     loader = DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
@@ -25,9 +25,26 @@ if __name__ == '__main__':
 
         for i, data in enumerate(loader):
             total_steps += opt.batch_size
-            # model.set_input_data(data)
+            count += opt.batch_size
+            model.set_input_data(data)
+            model.optimize()
             if total_steps % opt.frequency == 0:
-                pass
-            break
+                loss_val = model.loss_val
+                writer.print_loss(epoch, count, loss_val)
+                writer.plot_loss(epoch, count, loss_val, len(dataset))
 
-        break
+            if i % opt.loop_frequency == 0:
+                print('saving the latest model (epoch %d, total_steps %d)' %
+                      (epoch, total_steps))
+                model.save_network('latest')
+
+        if epoch % opt.epoch_frequency == 0:
+            print('saving the model at the end of epoch %d, iters %d' %
+                  (epoch, total_steps))
+            model.save_network('latest')
+            model.save_network(epoch)
+
+        if epoch % opt.test_frequency == 0:
+            acc = run_test(epoch)
+            writer.plot_acc(acc, epoch)
+    writer.close()

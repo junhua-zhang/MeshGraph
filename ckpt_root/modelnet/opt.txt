@@ -5,8 +5,9 @@ ckpt: ./ckpt
 ckpt_root: ./ckpt_root
 continue_train: False
 cuda: [0]
-datasets: datasets/modelnet40
+datasets: datasets/modelnet10
 epoch: 3000
+epoch_frequency: 1
 final_lr: 0.1
 frequency: 10
 gamma: 0.1
@@ -14,10 +15,12 @@ init_gain: 0.02
 init_type: normal
 is_train: True
 last_epoch: latest
+loop_frequency: 250
 lr: 0.001
 lr_policy: step
 milestones: [30, 60]
 name: modelnet
-nclasses: 40
+nclasses: 10
 task: cls
+test_frequency: 1
 -------------- End ----------------

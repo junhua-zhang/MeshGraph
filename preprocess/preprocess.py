@@ -94,14 +94,18 @@ class FaceToGraph(object):
         mesh_grap = Mesh(data.pos, data.face)
         # set the center ox oy oz unit_norm
         data.x = mesh_grap.nodes
+        print(data.x.size(0))
+
         data.num_nodes = data.x.size(0)
         edge_index = to_undirected(mesh_grap.edge_index.t(), data.num_nodes)
         edge_index, _ = remove_self_loops(edge_index)
 
+        print(edge_index.size(1))
         # set edge_index  to data
         data.edge_index = edge_index
         end_time = time.time()
         print('take {} s time for translate'.format(end_time-start_time))
+        mesh_grap = None
         if self.remove_faces:
             data.face = None
         return data
