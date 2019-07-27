@@ -136,14 +136,23 @@ import torch
 
 # print(p[mask])
 
-b = torch.tensor([0,0,1,2])
-a = torch.tensor([
-    [0, 0],
-    [0, 1],
-    [1, 2],
-    [2, 3]
-])
+# b = torch.tensor([0,0,1,2])
+# a = torch.tensor([
+#     [0, 0],
+#     [0, 1],
+#     [1, 2],
+#     [2, 3]
+# ])
 
 
-c = torch.argsort(b)
-print(c)
+# c = torch.argsort(b)
+# print(c)
+
+
+# s = (1,2)
+# print(s)
+# print(type(s))
+# b = set(1,2)
+
+a = [1, 2, 3]
+print(a[2:3])

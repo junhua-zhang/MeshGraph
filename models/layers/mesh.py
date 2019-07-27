@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-import time
 
 
 class Mesh:
@@ -13,15 +12,14 @@ class Mesh:
 
     def __init__(self, vertexes, faces):
         self.vertexes = vertexes
-        self.faces = faces.t()[:10, :]
+        self.faces = faces.t()
         self.edge_index = self.nodes = None
-        self.sorted_st_dict = self.sorted_ed_dict = None
-        self.sorted_st = self.sorted_ed = None
-        # cal time
-        start_time = time.time()
+
+        # find point and face indices
+        self.sorted_point_to_face = None
+        self.sorted_point_to_face_index_dict = None
+        # create graph
         self.create_graph()
-        end_time = time.time()
-        print('take {} s time for translate'.format(end_time-start_time))
 
     def create_graph(self):
         # conat center ox oy oz norm
@@ -32,9 +30,11 @@ class Mesh:
         )
         ox, oy, oz = get_three_vec(centers, point_x, point_y, point_z)
         norm = get_unit_norm_vec(point_x, point_y, point_z)
+        # cat the vecter
         self.nodes = torch.cat((centers, ox, oy, oz, norm), dim=1)
         # init neighbor dict to reduce time to be o(nlogn)
         self.init_neighbor_dict(self.faces)
+        self.get_edge_index(self.faces)
 
     def init_neighbor_dict(self, faces):
         # concat  point_a point_b index
@@ -45,26 +45,56 @@ class Mesh:
         edge_C = torch.cat((faces[:, ::2], index.view(-1, 1)), dim=1)
         edge_num = torch.cat((edge_A, edge_B, edge_C), dim=0)
         # sort start_point and end_point
-        start_point = edge_num[:, 0]
-        end_point = edge_num[:, 1]
-        # sort the index
-        sorted_a, indices_a = torch.sort(start_point)
-        sorted_b, indices_b = torch.sort(end_point)
+        start_point_with_face = edge_num[:, ::2]
+        end_point_with_face = edge_num[:, 1:]
+        point_with_face = torch.cat(
+            (start_point_with_face, end_point_with_face),
+            dim=0
+        )
+        # sort the point and faces
+        _, sorted_point_index = torch.sort(point_with_face[:, 0])
+        sorted_point = point_with_face[sorted_point_index, :]
+        self.sorted_point_to_face = sorted_point
+        self.sorted_point_to_face_index_dict = get_indices_dict(
+            sorted_point[:, 0])
 
-        sorted_st = edge_num[indices_a, :]
-        sorted_ed = edge_num[indices_b, :]
-        print(sorted_st)
+    def get_edge_index(self, faces):
+        edge_index = None
+        for index, value in enumerate(faces):
+            total_num = 0
+            # index_tensor = torch.tensor(index).repeat(1, 1)
+            for v in value:
+                if v.item() in self.sorted_point_to_face_index_dict:
+                    v_indeces = self.sorted_point_to_face_index_dict[
+                        v.item()
+                    ]
+                    v_face_index_vec = self.sorted_point_to_face[v_indeces, 1]
+                    size = v_face_index_vec.size(0)
+                    index_tensor = torch.tensor(index).repeat(size)
+                    temp_edge = torch.stack(
+                        (index_tensor, v_face_index_vec),
+                        dim=1
+                    )
+                    edge_index = torch.cat(
+                        (edge_index, temp_edge), dim=0) if edge_index is not None else temp_edge
+                else:
+                    raise ValueError('point', 'bad features')
+        self.edge_index = edge_index
 
-        # add indices dict for edge select
-        sorted_index = torch.arange(faces.size(0)).view(-1, 1)
-        sorted_st_with_index = torch.cat((sorted_st, sorted_index), dim=1)
 
-        # sorted_st_unique, sorted_st_index = torch.unique(
-        #     sorted_st_with_index, return_inverse=True)
-        # sorted_st_index = sorted_st_index[:sorted_st_unique.size(0)]
-
-        print(sorted_index)
-        print(sorted_st_with_index)
+def get_indices_dict(vec):
+    start = 0
+    cur_value = vec[0]
+    indices_dict = {}
+    for index, value in enumerate(vec):
+        if value == cur_value:
+            continue
+        else:
+            indices_dict[cur_value.item()] = torch.arange(start, index)
+            cur_value = value
+            start = index
+    indices_dict[cur_value.item()] = torch.arange(start, len(vec))
+    return indices_dict
 
 
 def get_inner_center_vec(v1, v2, v3):

@@ -1,6 +1,8 @@
 import torch
-from torch_geometric.utils import to_undirected
+from torch_geometric.utils import to_undirected, remove_self_loops
 from models.layers.mesh import Mesh
+import time
+
 
 def maybe_num_nodes(index, num_nodes=None):
     return index.max().item() + 1 if num_nodes is None else num_nodes
@@ -75,34 +77,6 @@ def remove_isolated_nodes(edge_index, edge_attr=None, num_nodes=None):
     return edge_index, edge_attr, mask
 
 
-class FaceToEdge(object):
-    r"""Converts mesh faces :obj:`[3, num_faces]` to edge indices
-    :obj:`[2, num_edges]`.
-
-    Args:
-        remove_faces (bool, optional): If set to :obj:`False`, the face tensor
-            will not be removed.
-    """
-
-    def __init__(self, remove_faces=True):
-        self.remove_faces = remove_faces
-
-    def __call__(self, data):
-        face = data.face
-
-        edge_index = torch.cat([face[:2], face[1:], face[::2]], dim=1)
-        edge_index = to_undirected(edge_index, num_nodes=data.num_nodes)
-
-        data.edge_index = edge_index
-        if self.remove_faces:
-            data.face = None
-
-        return data
-
-    def __repr__(self):
-        return '{}()'.format(self.__class__.__name__)
-
-
 class FaceToGraph(object):
     r"""Converts mesh faces :obj:`[3, num_faces]` to graph.
 
@@ -115,8 +89,21 @@ class FaceToGraph(object):
         self.remove_faces = remove_faces
 
     def __call__(self, data):
+        print('start translate')
+        start_time = time.time()
         mesh_grap = Mesh(data.pos, data.face)
+        # set the center ox oy oz unit_norm
+        data.x = mesh_grap.nodes
+        data.num_nodes = data.x.size(0)
+        edge_index = to_undirected(mesh_grap.edge_index.t(), data.num_nodes)
+        edge_index, _ = remove_self_loops(edge_index)
 
+        # set edge_index  to data
+        data.edge_index = edge_index
+        end_time = time.time()
+        print('take {} s time for translate'.format(end_time-start_time))
+        if self.remove_faces:
+            data.face = None
         return data
 
     def __repr__(self):
