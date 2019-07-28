@@ -47,6 +47,9 @@ class base_options:
         self.parser.add_argument(
             '--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.'
         )
+        self.parser.add_argument(
+            '--use_fpm',  action='store_true', help='use fpm model to catch feature'
+        )
 
     def parse(self):
         if not self.is_init:

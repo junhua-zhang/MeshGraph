@@ -5,7 +5,7 @@ class train_options(base_options):
     def initialize(self):
         base_options.initialize(self)
         self.parser.add_argument(
-            '--continue_train', action='store_true', help='continue training: load the latest model'
+            '--continue_train', action='store_true',  help='continue training: load the latest model'
         )
         self.parser.add_argument(
             '--last_epoch', default='latest', help='which epoch to load?'

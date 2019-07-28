@@ -3,7 +3,9 @@ import torch.nn as nn
 from torch.nn import init
 from torch.optim import lr_scheduler
 import torch.nn.functional as F
-from torch_geometric.nn import GINConv
+from torch_geometric.nn import GINConv, GraphConv
+from models.layers.struct_conv import MeshMlp
+
 
 def init_weights(net, init_type, init_gain):
     def init_func(m):
@@ -40,7 +42,7 @@ def init_net(net, init_type, init_gain, cuda_ids):
 def get_net(opt):
     net = None
     if opt.arch == 'meshconv':
-        net = MeshGraph()
+        net = MeshGraph(opt)
     else:
         raise NotImplementedError(
             'model name [%s] is not implemented' % opt.arch)
@@ -67,10 +69,19 @@ def get_scheduler(optimizer, opt):
 class MeshGraph(nn.Module):
     """Some Information about MeshGraph"""
 
-    def __init__(self):
+    def __init__(self, opt):
         super(MeshGraph, self).__init__()
-        self.fc = nn.Linear(32, 16)
+        self.mesh_mlp_256 = MeshMlp(256)
+        self.gin_conv_256 = GINConv(self.mesh_mlp_256)
+        self.graph_conv = GraphConv(15, opt.nclasses)
 
-    def forward(self, x):
-        x = self.fc(x)
+        if opt.use_fpm:
+            self.mesh_mlp_64 = MeshMlp(64)
+            self.mesh_mlp_128 = MeshMlp(128)
+            self.gin_conv_64 = GINConv(self.mesh_mlp_64)
+            self.gin_conv_128 = GINConv(self.mesh_mlp_128)
+
+    def forward(self, data):
+        x = data.x
+        edge_index = data.edge_index
         return x

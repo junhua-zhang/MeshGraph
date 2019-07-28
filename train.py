@@ -1,7 +1,7 @@
 import time
 from options.train_options import train_options
 from torch_geometric.datasets import ModelNet
-from preprocess.preprocess import FaceToGraph
+from preprocess.preprocess import FaceToGraph,FaceToEdge
 from torch_geometric.data import DataLoader
 from models import create_model
 from util.writer import Writer

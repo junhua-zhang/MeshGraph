@@ -48,7 +48,7 @@ class mesh_graph:
             correct = self.get_accuracy(pred_class, label_class)
         return correct, len(label_class)
 
-      def get_accuracy(self, pred, labels):
+    def get_accuracy(self, pred, labels):
         """computes accuracy for classification / segmentation """
         if self.opt.task == 'cls':
             correct = pred.eq(labels).sum()

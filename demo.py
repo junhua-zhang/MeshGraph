@@ -40,47 +40,49 @@ import torch
 #                     pre_transform=T.KNNGraph(k=6),
 #                     transform=T.RandomTranslate(0.01))
 # print(dataset[0])
-# from torch_geometric.nn import GCNConv
-# import torch.nn.functional as F
-# import torch
-# from torch_geometric.datasets import Planetoid
+from torch_geometric.nn import GCNConv
+import torch.nn.functional as F
+import torch
+from torch_geometric.datasets import Planetoid
 
-# dataset = Planetoid(root='datasets/Cora', name='Cora')
-
-
-# class Net(torch.nn.Module):
-#     def __init__(self):
-#         super(Net, self).__init__()
-#         self.conv1 = GCNConv(dataset.num_node_features, 16)
-#         self.conv2 = GCNConv(16, dataset.num_classes)
-
-#     def forward(self, data):
-#         x, edge_index = data.x, data.edge_index
-#         x = self.conv1(x, edge_index)
-#         x = F.relu(x)
-#         x = F.dropout(x, training=self.training)
-#         x = self.conv2(x, edge_index)
-#         return F.log_softmax(x, dim=1)
+dataset = Planetoid(root='datasets/Cora', name='Cora')
 
 
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# model = Net().to(device)
-# data = dataset[0].to(device)
-# optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
-# model.train()
-# for epoch in range(200):
-#     optimizer.zero_grad()
-#     out = model(data)
-#     loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
-#     loss.backward()
-#     optimizer.step()
+class Net(torch.nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = GCNConv(dataset.num_node_features, 16)
+        self.conv2 = GCNConv(16, dataset.num_classes)
+
+    def forward(self, data):
+        x, edge_index = data.x, data.edge_index
+        x = self.conv1(x, edge_index)
+        print(x.size())
+        x = F.relu(x)
+        x = F.dropout(x, training=self.training)
+        x = self.conv2(x, edge_index)
+        print(x.size())
+        return F.log_softmax(x, dim=1)
 
 
-# model.eval()
-# _, pred = model(data).max(dim=1)
-# correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
-# acc = correct / data.test_mask.sum().item()
-# print('Accuracy:{:.4f}'.format(acc))
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = Net().to(device)
+data = dataset[0].to(device)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+model.train()
+for epoch in range(200):
+    optimizer.zero_grad()
+    out = model(data)
+    loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
+    loss.backward()
+    optimizer.step()
+
+
+model.eval()
+_, pred = model(data).max(dim=1)
+correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
+acc = correct / data.test_mask.sum().item()
+print('Accuracy:{:.4f}'.format(acc))
 
 # str_1 = '0 ,1 ,2'
 # ids = str_1.split(',')
@@ -154,5 +156,5 @@ import torch
 # print(type(s))
 # b = set(1,2)
 
-a = [1, 2, 3]
-print(a[2:3])
+# a = [1, 2, 3]
+# print(a[2:3])

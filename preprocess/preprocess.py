@@ -87,20 +87,19 @@ class FaceToGraph(object):
 
     def __init__(self, remove_faces=True):
         self.remove_faces = remove_faces
+        self.count = 0
 
     def __call__(self, data):
-        print('start translate')
         start_time = time.time()
         mesh_grap = Mesh(data.pos, data.face)
         # set the center ox oy oz unit_norm
         data.x = mesh_grap.nodes
-        print(data.x.size(0))
+        print('%d-th mesh,size: %d' % (self.count, data.x.size(0)))
 
         data.num_nodes = data.x.size(0)
         edge_index = to_undirected(mesh_grap.edge_index.t(), data.num_nodes)
         edge_index, _ = remove_self_loops(edge_index)
 
-        print(edge_index.size(1))
         # set edge_index  to data
         data.edge_index = edge_index
         end_time = time.time()
@@ -108,6 +107,37 @@ class FaceToGraph(object):
         mesh_grap = None
         if self.remove_faces:
             data.face = None
+        self.count += 1
+        return data
+
+    def __repr__(self):
+        return '{}()'.format(self.__class__.__name__)
+
+
+class FaceToEdge(object):
+    r"""Converts mesh faces :obj:`[3, num_faces]` to edge indices
+    :obj:`[2, num_edges]`.
+
+    Args:
+        remove_faces (bool, optional): If set to :obj:`False`, the face tensor
+            will not be removed.
+    """
+
+    def __init__(self, remove_faces=True):
+        self.remove_faces = remove_faces
+        self.count = 0
+
+    def __call__(self, data):
+        print(self.count)
+        face = data.face
+
+        edge_index = torch.cat([face[:2], face[1:], face[::2]], dim=1)
+        edge_index = to_undirected(edge_index, num_nodes=data.num_nodes)
+
+        data.edge_index = edge_index
+        if self.remove_faces:
+            data.face = None
+        self.count += 1
         return data
 
     def __repr__(self):
