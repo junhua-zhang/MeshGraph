@@ -73,7 +73,8 @@ class MeshGraph(nn.Module):
         super(MeshGraph, self).__init__()
         self.mesh_mlp_256 = MeshMlp(256)
         self.gin_conv_256 = GINConv(self.mesh_mlp_256)
-        self.graph_conv = GraphConv(15, opt.nclasses)
+        self.graph_conv_64 = GraphConv(256, 64)
+        self.fc = nn.Linear(64, opt.nclasses)
 
         if opt.use_fpm:
             self.mesh_mlp_64 = MeshMlp(64)
@@ -84,4 +85,6 @@ class MeshGraph(nn.Module):
     def forward(self, data):
         x = data.x
         edge_index = data.edge_index
-        return x
+        x1 = F.relu(self.gin_conv_256(x, edge_index))
+        x2 = F.relu(self.graph_conv_64(x1, edge_index))
+        return self.fc(x2)
