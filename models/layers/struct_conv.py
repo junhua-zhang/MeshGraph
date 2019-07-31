@@ -27,10 +27,14 @@ class FaceVectorConv(nn.Module):
         center ox oy oz norm
         3       3  3  3   3
         '''
+        xy = torch.unsqueeze(x[:, 3:9], dim=0).transpose(1, 2)
+        yz = torch.unsqueeze(x[:, 6:12], dim=0).transpose(1, 2)
+        xz = torch.unsqueeze(
+            torch.cat([x[:, 3:6], x[:, 9:12]], dim=1), dim=0).transpose(1, 2)
         face_line = (
-            self.rotate_mlp(x[:, 3:9]) +
-            self.rotate_mlp(x[:, 6:12]) +
-            self.rotate_mlp(torch.cat([x[:, 3:6], x[:, 9:12]], dim=1))
+            self.rotate_mlp(xy) +
+            self.rotate_mlp(yz) +
+            self.rotate_mlp(xz)
         ) / 3
         return self.fusion_mlp(face_line)
 
@@ -52,7 +56,9 @@ class PointConv(nn.Module):
         '''
         center ox oy oz norm
         '''
-        return self.spatial_mlp(x[:, :3])
+        x = torch.unsqueeze(x[:, :3], dim=0).transpose(1, 2)
+        # print(x.size())
+        return self.spatial_mlp(x)
 
 
 class MeshMlp(nn.Module):
@@ -68,12 +74,24 @@ class MeshMlp(nn.Module):
             nn.BatchNorm1d(output_channel),
             nn.ReLU()
         )
+        self.global_pooling = nn.Sequential(
+            nn.AdaptiveMaxPool1d(1024),
+            nn.ReLU(),
+            nn.AdaptiveMaxPool1d(64),
+            nn.ReLU()
+
+        )
 
     def forward(self, x):
         point_feature = self.pc(x)  # n 64
         face_feature = self.fvc(x)  # n 64
+        norm = torch.unsqueeze(x[:, 12:], dim=0).transpose(1, 2)
         fusion_feature = torch.cat(
-            [x[:, 12:], point_feature, face_feature]  # n 64+64+3 = 131
+            [norm, point_feature, face_feature]  # n 64+64+3 = 131
             , dim=1
         )
-        return self.mlp(fusion_feature)
+        print('dian te zheng')
+        print(point_feature)
+        print('mian te zheng')
+        print(face_feature)
+        return self.global_pooling(self.mlp(fusion_feature))  # 1 64 m

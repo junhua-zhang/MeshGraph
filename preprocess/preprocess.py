@@ -1,5 +1,7 @@
 import torch
+from torch.utils.cpp_extension import load
 from torch_geometric.utils import to_undirected, remove_self_loops
+# from models.layers.mesh_cpp_extension import Mesh
 from models.layers.mesh import Mesh
 import time
 
@@ -86,20 +88,23 @@ class FaceToGraph(object):
     """
 
     def __init__(self, remove_faces=True):
+        # self.mesh_graph_cpp = load(name='meshgraph_cpp', sources=[
+        #     'models/layers/meshgraph.cpp'])
         self.remove_faces = remove_faces
         self.count = 0
 
     def __call__(self, data):
         start_time = time.time()
+        print('start transform')
         mesh_grap = Mesh(data.pos, data.face)
         # set the center ox oy oz unit_norm
         data.x = mesh_grap.nodes
-        print('%d-th mesh,size: %d' % (self.count, data.x.size(0)))
-
+        print(data.x)
         data.num_nodes = data.x.size(0)
         edge_index = to_undirected(mesh_grap.edge_index.t(), data.num_nodes)
-        edge_index, _ = remove_self_loops(edge_index)
+        # edge_index, _ = remove_self_loops(edge_index)
 
+        print('%d-th mesh,size: %d' % (self.count, data.x.size(0)))
         # set edge_index  to data
         data.edge_index = edge_index
         end_time = time.time()

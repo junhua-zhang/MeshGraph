@@ -1,4 +1,7 @@
-import torch
+
+import time
+from torch.utils.cpp_extension import load
+
 # from torch_geometric.data import Data
 
 # edge_index = torch.tensor([[0, 1, 1, 2],
@@ -40,49 +43,49 @@ import torch
 #                     pre_transform=T.KNNGraph(k=6),
 #                     transform=T.RandomTranslate(0.01))
 # print(dataset[0])
-from torch_geometric.nn import GCNConv
-import torch.nn.functional as F
-import torch
-from torch_geometric.datasets import Planetoid
+# from torch_geometric.nn import GCNConv
+# import torch.nn.functional as F
+# import torch
+# from torch_geometric.datasets import Planetoid
 
-dataset = Planetoid(root='datasets/Cora', name='Cora')
-
-
-class Net(torch.nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = GCNConv(dataset.num_node_features, 16)
-        self.conv2 = GCNConv(16, dataset.num_classes)
-
-    def forward(self, data):
-        x, edge_index = data.x, data.edge_index
-        x = self.conv1(x, edge_index)
-        print(x.size())
-        x = F.relu(x)
-        x = F.dropout(x, training=self.training)
-        x = self.conv2(x, edge_index)
-        print(x.size())
-        return F.log_softmax(x, dim=1)
+# dataset = Planetoid(root='datasets/Cora', name='Cora')
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = Net().to(device)
-data = dataset[0].to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
-model.train()
-for epoch in range(200):
-    optimizer.zero_grad()
-    out = model(data)
-    loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
-    loss.backward()
-    optimizer.step()
+# class Net(torch.nn.Module):
+#     def __init__(self):
+#         super(Net, self).__init__()
+#         self.conv1 = GCNConv(dataset.num_node_features, 16)
+#         self.conv2 = GCNConv(16, dataset.num_classes)
+
+#     def forward(self, data):
+#         x, edge_index = data.x, data.edge_index
+#         x = self.conv1(x, edge_index)
+#         print(x.size())
+#         x = F.relu(x)
+#         x = F.dropout(x, training=self.training)
+#         x = self.conv2(x, edge_index)
+#         print(x.size())
+#         return F.log_softmax(x, dim=1)
 
 
-model.eval()
-_, pred = model(data).max(dim=1)
-correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
-acc = correct / data.test_mask.sum().item()
-print('Accuracy:{:.4f}'.format(acc))
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# model = Net().to(device)
+# data = dataset[0].to(device)
+# optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+# model.train()
+# for epoch in range(200):
+#     optimizer.zero_grad()
+#     out = model(data)
+#     loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
+#     loss.backward()
+#     optimizer.step()
+
+
+# model.eval()
+# _, pred = model(data).max(dim=1)
+# correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
+# acc = correct / data.test_mask.sum().item()
+# print('Accuracy:{:.4f}'.format(acc))
 
 # str_1 = '0 ,1 ,2'
 # ids = str_1.split(',')
@@ -158,3 +161,55 @@ print('Accuracy:{:.4f}'.format(acc))
 
 # a = [1, 2, 3]
 # print(a[2:3])
+
+
+# start_time = time.time()
+# meshgraph_cpp = load(name='meshgraph_cpp', sources=[
+#                      'models/layers/meshgraph.cpp'])
+# # edge_index = meshgraph_cpp.get_connect_matrix(faces, 4)
+# meshgraph_cpp.test()
+# end_time = time.time()
+# print(end_time-start_time)
+# print(edge_index)
+import torch
+# import meshgraph_cpp
+
+# faces = torch.tensor(
+#     [
+#         [0, 1, 2],
+#         [1, 2, 3],
+#         [3, 1, 0]
+#     ],
+#     dtype=torch.long
+# )
+# start_time = time.time()
+# meshgraph_cpp.get_connect_matrix(faces,4)
+# end_time = time.time()
+# print(end_time-start_time)
+
+# a = torch.tensor([
+#     [1, 2, 3],
+#     [4, 5, 6],
+#     [7, 8, 9]
+# ])
+# c = torch.tensor(
+#     [
+#         [0, 1, 2],
+#         [0, 1, 1]
+#     ]
+# )
+# b = a[c]
+# print(b)
+# print(b.size())
+
+import torch.nn as nn
+# m = nn.AdaptiveMaxPool1d(5)
+# input = torch.randn(1, 64, 8)
+# output = m(input)
+# print(output.size())
+
+a = torch.randn(64, 1024, 1024)
+a = a.view(64, -1)
+m = nn.Linear(1024*1024, 1024)
+b = m(a)
+print(b.size())

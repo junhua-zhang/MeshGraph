@@ -74,7 +74,16 @@ class MeshGraph(nn.Module):
         self.mesh_mlp_256 = MeshMlp(256)
         self.gin_conv_256 = GINConv(self.mesh_mlp_256)
         self.graph_conv_64 = GraphConv(256, 64)
-        self.fc = nn.Linear(64, opt.nclasses)
+
+        self.classifier = nn.Sequential(
+            nn.Linear(256*64, 512),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(256, 10)
+        )
 
         if opt.use_fpm:
             self.mesh_mlp_64 = MeshMlp(64)
@@ -82,9 +91,11 @@ class MeshGraph(nn.Module):
             self.gin_conv_64 = GINConv(self.mesh_mlp_64)
             self.gin_conv_128 = GINConv(self.mesh_mlp_128)
 
-    def forward(self, data):
-        x = data.x
-        edge_index = data.edge_index
+    def forward(self, nodes_features, edge_index):
+        x = nodes_features
+        edge_index = edge_index
         x1 = F.relu(self.gin_conv_256(x, edge_index))
-        x2 = F.relu(self.graph_conv_64(x1, edge_index))
-        return self.fc(x2)
+        # x2 = F.relu(self.graph_conv_64(x1, edge_index))
+        # x1 = torch.max(x1, dim=2)[0]
+        x1 = x1.view(-1, 256*64)
+        return self.classifier(x1)

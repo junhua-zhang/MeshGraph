@@ -1,7 +1,7 @@
 import time
 from options.train_options import train_options
 from torch_geometric.datasets import ModelNet
-from preprocess.preprocess import FaceToGraph,FaceToEdge
+from preprocess.preprocess import FaceToGraph, FaceToEdge
 from torch_geometric.data import DataLoader
 from models import create_model
 from util.writer import Writer
@@ -11,7 +11,7 @@ if __name__ == '__main__':
     opt = train_options().parse()
 
     # load dataset
-    dataset = ModelNet(root=opt.datasets, name='10',
+    dataset = ModelNet(root=opt.datasets, name=str(opt.nclasses),
                        pre_transform=FaceToGraph(remove_faces=True))
     print('# training meshes = %d' % len(dataset))
     loader = DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
@@ -37,6 +37,7 @@ if __name__ == '__main__':
                 print('saving the latest model (epoch %d, total_steps %d)' %
                       (epoch, total_steps))
                 model.save_network('latest')
+            break
 
         if epoch % opt.epoch_frequency == 0:
             print('saving the model at the end of epoch %d, iters %d' %
@@ -47,4 +48,5 @@ if __name__ == '__main__':
         if epoch % opt.test_frequency == 0:
             acc = run_test(epoch)
             writer.plot_acc(acc, epoch)
+        # break
     writer.close()

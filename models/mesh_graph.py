@@ -1,6 +1,7 @@
 import torch
 import torch.nn
 import os.path as osp
+import numpy as np
 from . import networks
 from models.optimizer import adabound
 from torch_geometric.utils import remove_self_loops, contains_self_loops, contains_isolated_nodes
@@ -78,12 +79,19 @@ class mesh_graph:
         self.edge_index = edge_index.to(self.device).long()
         self.nodes_features = nodes_features.to(self.device).float()
 
+        for i in self.nodes_features:
+            for j in i:
+                print(j)
+
     def forward(self):
         out = self.net(self.nodes_features, self.edge_index)
         return out
 
     def backward(self, out):
-        self.loss_val = self.loss(self.out, self.labels)
+        print('backward')
+        print(out)
+        print(self.labels)
+        self.loss_val = self.loss(out, self.labels)
         self.loss_val.backward()
 
     def optimize(self):

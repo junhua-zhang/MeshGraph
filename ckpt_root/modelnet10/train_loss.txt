@@ -1,0 +1,120 @@
+================ Training Loss (Tue Jul 30 09:53:44 2019) ================
+================ Training Loss (Tue Jul 30 09:57:34 2019) ================
+================ Training Loss (Tue Jul 30 10:01:56 2019) ================
+================ Training Loss (Tue Jul 30 10:05:43 2019) ================
+================ Training Loss (Tue Jul 30 10:07:41 2019) ================
+================ Training Loss (Tue Jul 30 10:12:38 2019) ================
+================ Training Loss (Tue Jul 30 10:15:11 2019) ================
+================ Training Loss (Tue Jul 30 10:35:04 2019) ================
+================ Training Loss (Tue Jul 30 10:36:40 2019) ================
+================ Training Loss (Tue Jul 30 10:48:17 2019) ================
+================ Training Loss (Tue Jul 30 10:51:06 2019) ================
+================ Training Loss (Tue Jul 30 10:55:19 2019) ================
+================ Training Loss (Tue Jul 30 10:58:55 2019) ================
+================ Training Loss (Tue Jul 30 11:04:24 2019) ================
+================ Training Loss (Tue Jul 30 11:18:03 2019) ================
+================ Training Loss (Tue Jul 30 11:19:16 2019) ================
+================ Training Loss (Tue Jul 30 12:29:22 2019) ================
+================ Training Loss (Tue Jul 30 12:29:57 2019) ================
+================ Training Loss (Tue Jul 30 12:35:05 2019) ================
+================ Training Loss (Tue Jul 30 12:36:12 2019) ================
+================ Training Loss (Tue Jul 30 12:52:33 2019) ================
+================ Training Loss (Tue Jul 30 12:52:52 2019) ================
+================ Training Loss (Tue Jul 30 12:57:33 2019) ================
+================ Training Loss (Tue Jul 30 12:59:17 2019) ================
+================ Training Loss (Tue Jul 30 13:02:30 2019) ================
+================ Training Loss (Tue Jul 30 13:05:01 2019) ================
+================ Training Loss (Tue Jul 30 13:07:06 2019) ================
+================ Training Loss (Tue Jul 30 13:07:32 2019) ================
+================ Training Loss (Tue Jul 30 13:13:09 2019) ================
+================ Training Loss (Tue Jul 30 13:13:36 2019) ================
+================ Training Loss (Tue Jul 30 13:14:43 2019) ================
+================ Training Loss (Tue Jul 30 13:17:30 2019) ================
+================ Training Loss (Tue Jul 30 13:17:49 2019) ================
+================ Training Loss (Tue Jul 30 13:18:36 2019) ================
+================ Training Loss (Tue Jul 30 13:19:53 2019) ================
+================ Training Loss (Tue Jul 30 13:47:16 2019) ================
+================ Training Loss (Tue Jul 30 13:54:19 2019) ================
+================ Training Loss (Tue Jul 30 13:55:30 2019) ================
+================ Training Loss (Tue Jul 30 13:56:45 2019) ================
+================ Training Loss (Tue Jul 30 13:57:18 2019) ================
+================ Training Loss (Wed Jul 31 00:04:51 2019) ================
+================ Training Loss (Wed Jul 31 00:28:57 2019) ================
+================ Training Loss (Wed Jul 31 05:01:08 2019) ================
+================ Training Loss (Wed Jul 31 05:02:10 2019) ================
+================ Training Loss (Wed Jul 31 05:03:09 2019) ================
+================ Training Loss (Wed Jul 31 05:04:12 2019) ================
+epoch : 0, iter : 10 , loss : nan
+epoch : 0, iter : 20 , loss : nan
+epoch : 0, iter : 30 , loss : nan
+epoch : 0, iter : 40 , loss : nan
+epoch : 0, iter : 50 , loss : nan
+epoch : 0, iter : 60 , loss : nan
+epoch : 0, iter : 70 , loss : nan
+epoch : 0, iter : 80 , loss : nan
+epoch : 0, iter : 90 , loss : nan
+epoch : 0, iter : 100 , loss : nan
+epoch : 0, iter : 110 , loss : nan
+epoch : 0, iter : 120 , loss : nan
+epoch : 0, iter : 130 , loss : nan
+epoch : 0, iter : 140 , loss : nan
+epoch : 0, iter : 150 , loss : nan
+epoch : 0, iter : 160 , loss : nan
+epoch : 0, iter : 170 , loss : nan
+epoch : 0, iter : 180 , loss : nan
+epoch : 0, iter : 190 , loss : nan
+epoch : 0, iter : 200 , loss : nan
+epoch : 0, iter : 210 , loss : nan
+epoch : 0, iter : 220 , loss : nan
+epoch : 0, iter : 230 , loss : nan
+epoch : 0, iter : 240 , loss : nan
+epoch : 0, iter : 250 , loss : nan
+epoch : 0, iter : 260 , loss : nan
+epoch : 0, iter : 270 , loss : nan
+epoch : 0, iter : 280 , loss : nan
+epoch : 0, iter : 290 , loss : nan
+epoch : 0, iter : 300 , loss : nan
+epoch : 0, iter : 310 , loss : nan
+epoch : 0, iter : 320 , loss : nan
+epoch : 0, iter : 330 , loss : nan
+================ Training Loss (Wed Jul 31 05:06:34 2019) ================
+epoch : 0, iter : 10 , loss : nan
+epoch : 0, iter : 20 , loss : nan
+epoch : 0, iter : 30 , loss : nan
+epoch : 0, iter : 40 , loss : nan
+================ Training Loss (Wed Jul 31 05:07:21 2019) ================
+epoch : 0, iter : 10 , loss : nan
+epoch : 0, iter : 20 , loss : nan
+epoch : 0, iter : 30 , loss : nan
+epoch : 0, iter : 40 , loss : nan
+epoch : 0, iter : 50 , loss : nan
+================ Training Loss (Wed Jul 31 05:07:50 2019) ================
+epoch : 0, iter : 10 , loss : nan
+================ Training Loss (Wed Jul 31 05:09:53 2019) ================
+epoch : 0, iter : 10 , loss : nan
+================ Training Loss (Wed Jul 31 05:12:25 2019) ================
+================ Training Loss (Wed Jul 31 05:12:55 2019) ================
+================ Training Loss (Wed Jul 31 05:13:54 2019) ================
+================ Training Loss (Wed Jul 31 05:14:26 2019) ================
+================ Training Loss (Wed Jul 31 05:14:52 2019) ================
+================ Training Loss (Wed Jul 31 05:15:40 2019) ================
+================ Training Loss (Wed Jul 31 05:17:37 2019) ================
+epoch : 0, iter : 10 , loss : nan
+epoch : 0, iter : 20 , loss : nan
+epoch : 0, iter : 30 , loss : nan
+epoch : 0, iter : 40 , loss : nan
+epoch : 0, iter : 50 , loss : nan
+epoch : 0, iter : 60 , loss : nan
+epoch : 0, iter : 70 , loss : nan
+epoch : 0, iter : 80 , loss : nan
+epoch : 0, iter : 90 , loss : nan
+================ Training Loss (Wed Jul 31 05:19:26 2019) ================
+================ Training Loss (Wed Jul 31 05:19:52 2019) ================
+================ Training Loss (Wed Jul 31 05:21:21 2019) ================
+================ Training Loss (Wed Jul 31 05:22:48 2019) ================
+================ Training Loss (Wed Jul 31 05:23:14 2019) ================
+================ Training Loss (Wed Jul 31 05:24:43 2019) ================
+================ Training Loss (Wed Jul 31 05:25:07 2019) ================
+================ Training Loss (Wed Jul 31 05:25:39 2019) ================
+================ Training Loss (Wed Jul 31 05:26:06 2019) ================
+================ Training Loss (Wed Jul 31 05:27:24 2019) ================
