@@ -4,7 +4,7 @@ import time
 try:
     from tensorboardX import SummaryWriter
 except ImportError as error:
-    print('tensorboardX is not available, please install it.')
+    raise('tensorboardX is not available, please install it.')
     SummaryWriter = None
 
 
@@ -17,8 +17,8 @@ class Writer:
         self.test_loss = os.path.join(self.save_path, 'test_loss.txt')
 
         # set display
-        if opt.is_train and not SummaryWriter is not None:
-            self.display = SummaryWriter(comment=opt.name)
+        if opt.is_train and SummaryWriter is not None:
+            self.display = SummaryWriter()  # comment=opt.name
         else:
             self.display = None
 

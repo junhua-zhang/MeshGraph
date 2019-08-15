@@ -42,13 +42,16 @@ class base_options:
             '--arch', type=str, default='meshconv', help='model arch'
         )
         self.parser.add_argument(
-            '--init_type', type=str, default='normal', help='network initialization [normal|xavier|kaiming|orthogonal]'
+            '--init_type', type=str, default='xavier', help='network initialization [normal|xavier|kaiming|orthogonal]'
         )
         self.parser.add_argument(
             '--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.'
         )
         self.parser.add_argument(
             '--use_fpm',  action='store_true', help='use fpm model to catch feature'
+        )
+        self.parser.add_argument(
+            '--milestones', default='600,1200', help='milestones for MultiStepLR'
         )
 
     def parse(self):
@@ -60,6 +63,7 @@ class base_options:
         cuda_ids = self.opt.cuda.split(',')
         self.opt.cuda = []
         self.opt.milestones = [int(x) for x in self.opt.milestones.split(',')]
+
         for cuda_id in cuda_ids:
             id = int(cuda_id)
             if id >= 0:

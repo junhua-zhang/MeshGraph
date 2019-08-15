@@ -90,8 +90,4 @@ class MeshMlp(nn.Module):
             [norm, point_feature, face_feature]  # n 64+64+3 = 131
             , dim=1
         )
-        print('dian te zheng')
-        print(point_feature)
-        print('mian te zheng')
-        print(face_feature)
         return self.global_pooling(self.mlp(fusion_feature))  # 1 64 m

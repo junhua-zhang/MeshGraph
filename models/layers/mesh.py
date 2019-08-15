@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import math
 
 
 class Mesh:
@@ -18,6 +19,9 @@ class Mesh:
         # find point and face indices
         self.sorted_point_to_face = None
         self.sorted_point_to_face_index_dict = None
+        # normalize vertexes
+        self.normlize_vertices()
+
         # create graph
         self.create_graph()
 
@@ -28,11 +32,31 @@ class Mesh:
         centers = get_inner_center_vec(
             point_x, point_y, point_z
         )
+        temp = centers.view(-1)
+        if torch.sum(torch.isnan(temp), dim=0) > 0:
+            raise('center -------------------------------  nan')
         ox, oy, oz = get_three_vec(centers, point_x, point_y, point_z)
         norm = get_unit_norm_vec(point_x, point_y, point_z)
+        temp = norm.view(-1)
+        if torch.sum(torch.isnan(temp), dim=0) > 0:
+            raise('norm -------------------------------   nan')
         # cat the vecter
         self.nodes = torch.cat((centers, ox, oy, oz, norm), dim=1)
+
+        is_nan = self.nodes.view(-1)
+        if torch.sum(torch.isnan(is_nan), dim=0) > 0:
+            raise('contain nan ')
         self.get_connect_matrix()
+
+    def normlize_vertices(self):
+        ''' move vertices to center
+        '''
+        center = (torch.max(self.vertexes, dim=0)[0] +
+                  torch.min(self.vertexes, dim=0)[0])/2
+        self.vertexes -= center
+        max_len = torch.max(self.vertexes[:, 0]**2 +
+                            self.vertexes[:, 1]**2 + self.vertexes[:, 2]**2).item()
+        self.vertexes /= math.sqrt(max_len)
 
     def get_connect_matrix(self):
         node_list = [[] for _ in range(self.num_nodes)]
@@ -56,18 +80,7 @@ def get_inner_center_vec(v1, v2, v3):
     v1 v2 v3 represent 3 vertexes of triangle
     v1 (n,3)
     '''
-    a = get_distance_vec(v2, v3)
-    b = get_distance_vec(v3, v1)
-    c = get_distance_vec(v1, v2)
-    x = torch.stack((v1[:, 0], v2[:, 0], v3[:, 0]), dim=1)
-    y = torch.stack((v1[:, 1], v2[:, 1], v3[:, 1]), dim=1)
-    z = torch.stack((v1[:, 2], v2[:, 2], v3[:, 2]), dim=1)
-    dis = torch.stack((a, b, c), dim=1)
-    return torch.stack((
-        torch.sum((x * dis) / (a+b+c).repeat(3, 1).t(), dim=1),
-        torch.sum((y * dis) / (a+b+c).repeat(3, 1).t(), dim=1),
-        torch.sum((z * dis) / (a+b+c).repeat(3, 1).t(), dim=1),
-    ), dim=1)
+    return (v1+v2+v3)/3
 
 
 def get_distance_vec(v1, v2):
@@ -89,8 +102,7 @@ def get_unit_norm_vec(v1, v2, v3):
     x1, y1, z1 = xy[:, 0], xy[:, 1], xy[:, 2]
     x2, y2, z2 = xz[:, 0], xz[:, 1], xz[:, 2]
     norm = torch.stack((y1*z2-y2*z1, x2*z1-x1*z2, x1*y2-x2*y1), dim=1)
-    vec_len = torch.sqrt(torch.sum(norm**2, dim=1))
-    return norm / vec_len.repeat(3, 1).t()
+    return norm
 
 
 def get_three_vec(center, v1, v2, v3):

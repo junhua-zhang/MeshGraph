@@ -19,11 +19,12 @@ if __name__ == '__main__':
     writer = Writer(opt)
     total_steps = 0
 
-    for epoch in range(0, opt.epoch):
+    for epoch in range(1, opt.epoch):
         start_time = time.time()
         count = 0
 
         for i, data in enumerate(loader):
+            # break
             total_steps += opt.batch_size
             count += opt.batch_size
             model.set_input_data(data)
@@ -37,7 +38,7 @@ if __name__ == '__main__':
                 print('saving the latest model (epoch %d, total_steps %d)' %
                       (epoch, total_steps))
                 model.save_network('latest')
-            break
+            # break
 
         if epoch % opt.epoch_frequency == 0:
             print('saving the model at the end of epoch %d, iters %d' %

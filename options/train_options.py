@@ -12,10 +12,10 @@ class train_options(base_options):
         )
         # optimizer param
         self.parser.add_argument(
-            '--lr', default=1e-3, type=float, help='learning rate'
+            '--lr', default=1e-2, type=float, help='learning rate'
         )
         self.parser.add_argument(
-            '--final_lr', default=0.1, type=float, help='final learning rate'
+            '--final_lr', default=1e-1, type=float, help='final learning rate'
         )
         self.parser.add_argument(
             '--epoch', type=int, default=3000, help='training epoch'
@@ -24,7 +24,7 @@ class train_options(base_options):
             '--frequency', type=int, default=10, help='training epoch'
         )
         self.parser.add_argument(
-            '--epoch_frequency', type=int, default=1, help='epoch to print'
+            '--epoch_frequency', type=int, default=100, help='epoch to print'
         )
         self.parser.add_argument(
             '--loop_frequency', type=int, default=250, help='iters epoch to print'
@@ -36,10 +36,13 @@ class train_options(base_options):
             '--lr_policy', default='step', type=str, help='learning rate policy: step|'
         )
         self.parser.add_argument(
-            '--milestones', default='30,60', help='milestones for MultiStepLR'
+            '--gamma', default=0.1, type=float, help='gamma for MultiStepLR'
         )
         self.parser.add_argument(
-            '--gamma', default=0.1, type=float, help='gamma for MultiStepLR'
+            '--momentum', default=0.9, type=float
+        )
+        self.parser.add_argument(
+            '--weight_decay', default=0.0005, type=float
         )
 
         # model

@@ -3,6 +3,7 @@ import torch.nn
 import os.path as osp
 import numpy as np
 from . import networks
+import torch.optim as optim
 from models.optimizer import adabound
 from torch_geometric.utils import remove_self_loops, contains_self_loops, contains_isolated_nodes
 
@@ -23,17 +24,16 @@ class mesh_graph:
 
         # init network
         self.net = networks.get_net(opt)
-
         self.net.train(self.is_train)
 
         # criterion
         self.loss = networks.get_loss(self.opt).to(self.device)
 
         if self.is_train:
-            self.optimizer = adabound.AdaBound(
-                params=self.net.parameters(), lr=self.opt.lr, final_lr=self.opt.final_lr)
+            # self.optimizer = adabound.AdaBound(
+            #     params=self.net.parameters(), lr=self.opt.lr, final_lr=self.opt.final_lr)
+            self.optimizer = optim.SGD(self.net.parameters(),lr=opt.lr,momentum=opt.momentum,weight_decay=opt.weight_decay)
             self.scheduler = networks.get_scheduler(self.optimizer, self.opt)
-
         if not self.is_train or opt.continue_train:
             self.load_state(opt.last_epoch)
 
@@ -41,10 +41,12 @@ class mesh_graph:
         """tests model
         returns: number correct and total number
         """
+        self.net.eval()
         with torch.no_grad():
             out = self.forward()
             # compute number of correct
-            pred_class = torch.max(out, dim=1)
+            pred_class = torch.max(out, dim=1)[1]
+            print(pred_class)
             label_class = self.labels
             correct = self.get_accuracy(pred_class, label_class)
         return correct, len(label_class)
@@ -79,18 +81,16 @@ class mesh_graph:
         self.edge_index = edge_index.to(self.device).long()
         self.nodes_features = nodes_features.to(self.device).float()
 
-        for i in self.nodes_features:
-            for j in i:
-                print(j)
+        # for i in self.nodes_features:
+        #     for j in i:
+        #         if torch.sum(torch.isnan(j), dim=0) > 0:
+        #             print('nan')
 
     def forward(self):
         out = self.net(self.nodes_features, self.edge_index)
         return out
 
     def backward(self, out):
-        print('backward')
-        print(out)
-        print(self.labels)
         self.loss_val = self.loss(out, self.labels)
         self.loss_val.backward()
 
@@ -98,6 +98,7 @@ class mesh_graph:
         '''
         optimize paramater
         '''
+        self.net.train()
         self.optimizer.zero_grad()
         out = self.forward()
         self.backward(out)

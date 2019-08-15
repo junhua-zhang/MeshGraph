@@ -11,12 +11,12 @@ def run_test(epoch=-1):
     opt = test_options().parse()
     dataset = ModelNet(root=opt.datasets, name='10', train=False,
                        pre_transform=FaceToGraph(remove_faces=True))
-    loader = DataLoader(dataset, batch_size=opt.batch_size, shuffle=False)
+    loader = DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
     model = create_model(opt)
     writer = Writer(opt)
     writer.reset_counter()
     for i, data in enumerate(loader):
-        model.set_input(data)
+        model.set_input_data(data)
         ncorrect, nexamples = model.test()
         writer.update_counter(ncorrect, nexamples)
     writer.print_acc(epoch, writer.acc)
