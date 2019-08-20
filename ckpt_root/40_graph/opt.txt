@@ -1,0 +1,30 @@
+------------ Options -------------
+arch: meshconv
+batch_size: 64
+ckpt: ./ckpt
+ckpt_root: ./ckpt_root
+continue_train: False
+cuda: [0]
+datasets: datasets/modelnet40_graph
+epoch: 150
+epoch_frequency: 10
+final_lr: 0.1
+frequency: 10
+gamma: 0.1
+grad_clip: 5
+init_gain: 0.02
+init_type: kaiming
+is_train: True
+last_epoch: latest
+loop_frequency: 10
+lr: 0.01
+lr_policy: step
+milestones: [30, 60]
+momentum: 0.9
+name: 40_graph
+nclasses: 40
+task: cls
+test_frequency: 1
+use_fpm: False
+weight_decay: 0.0005
+-------------- End ----------------

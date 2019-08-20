@@ -12,22 +12,22 @@ class train_options(base_options):
         )
         # optimizer param
         self.parser.add_argument(
-            '--lr', default=1e-2, type=float, help='learning rate'
+            '--lr', default=0.01, type=float, help='learning rate'
         )
         self.parser.add_argument(
-            '--final_lr', default=1e-1, type=float, help='final learning rate'
+            '--final_lr', default=0.1, type=float, help='final learning rate'
         )
         self.parser.add_argument(
-            '--epoch', type=int, default=3000, help='training epoch'
+            '--epoch', type=int, default=150, help='training epoch'
         )
         self.parser.add_argument(
             '--frequency', type=int, default=10, help='training epoch'
         )
         self.parser.add_argument(
-            '--epoch_frequency', type=int, default=100, help='epoch to print'
+            '--epoch_frequency', type=int, default=10, help='epoch to print'
         )
         self.parser.add_argument(
-            '--loop_frequency', type=int, default=250, help='iters epoch to print'
+            '--loop_frequency', type=int, default=10, help='iters epoch to print'
         )
         self.parser.add_argument(
             '--test_frequency', type=int, default=1, help='test epoch'
@@ -44,6 +44,8 @@ class train_options(base_options):
         self.parser.add_argument(
             '--weight_decay', default=0.0005, type=float
         )
+        self.parser.add_argument('--grad_clip', type=float,
+                                 default=5, help='gradient clipping')
 
         # model
         self.is_train = True

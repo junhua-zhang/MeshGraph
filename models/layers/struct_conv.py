@@ -22,48 +22,50 @@ class FaceVectorConv(nn.Module):
             nn.ReLU()
         )
 
-    def forward(self, x):
+    def forward(self, x, opt):
         '''
+        x : batch_size *15 , 1024
         center ox oy oz norm
         3       3  3  3   3
         '''
-        xy = torch.unsqueeze(x[:, 3:9], dim=0).transpose(1, 2)
-        yz = torch.unsqueeze(x[:, 6:12], dim=0).transpose(1, 2)
-        xz = torch.unsqueeze(
-            torch.cat([x[:, 3:6], x[:, 9:12]], dim=1), dim=0).transpose(1, 2)
+        data = x.view(opt.batch_size, -1, 15).transpose(1, 2)
+        xy = data[:, 3:9]
+        yz = data[:, 6:12]
+        xz = torch.cat([data[:, 3:6], data[:, 9:12]], dim=1)
         face_line = (
             self.rotate_mlp(xy) +
             self.rotate_mlp(yz) +
             self.rotate_mlp(xz)
-        ) / 3
+        ) / 3  # 64 , 64 , 1024
         return self.fusion_mlp(face_line)
 
 
 class PointConv(nn.Module):
-    def __init__(self, output_channel=64):
+    def __init__(self):
         super(PointConv, self).__init__()
 
         self.spatial_mlp = nn.Sequential(
             nn.Conv1d(3, 64, 1),
             nn.BatchNorm1d(64),
             nn.ReLU(),
-            nn.Conv1d(64, output_channel, 1),
-            nn.BatchNorm1d(output_channel),
+            nn.Conv1d(64, 64, 1),
+            nn.BatchNorm1d(64),
             nn.ReLU(),
         )
 
-    def forward(self, x):
+    def forward(self, x, opt):
         '''
         center ox oy oz norm
         '''
-        x = torch.unsqueeze(x[:, :3], dim=0).transpose(1, 2)
-        # print(x.size())
+        data = x.view(opt.batch_size, -1, 15).transpose(1, 2)
+        x = data[:, :3]
         return self.spatial_mlp(x)
 
 
 class MeshMlp(nn.Module):
-    def __init__(self, output_channel=256):
+    def __init__(self, opt, output_channel=256):
         super(MeshMlp, self).__init__()
+        self.opt = opt
         self.pc = PointConv()
         self.fvc = FaceVectorConv()
         self.mlp = nn.Sequential(
@@ -74,20 +76,16 @@ class MeshMlp(nn.Module):
             nn.BatchNorm1d(output_channel),
             nn.ReLU()
         )
-        self.global_pooling = nn.Sequential(
-            nn.AdaptiveMaxPool1d(1024),
-            nn.ReLU(),
-            nn.AdaptiveMaxPool1d(64),
-            nn.ReLU()
-
-        )
 
     def forward(self, x):
-        point_feature = self.pc(x)  # n 64
-        face_feature = self.fvc(x)  # n 64
-        norm = torch.unsqueeze(x[:, 12:], dim=0).transpose(1, 2)
+        # x: batch_size*15,1024
+        print(x.size())
+        data = x.view(self.opt.batch_size, -1, 15).transpose(1, 2)
+        point_feature = self.pc(x, self.opt)  # n 64 1024
+        face_feature = self.fvc(x, self.opt)  # n 64 1024
+        norm = data[:, 12:]
         fusion_feature = torch.cat(
-            [norm, point_feature, face_feature]  # n 64+64+3 = 131
+            [norm, point_feature, face_feature]  # n 64+64+3 = 131 1024
             , dim=1
         )
-        return self.global_pooling(self.mlp(fusion_feature))  # 1 64 m
+        return self.mlp(fusion_feature)  # n 256 1024

@@ -1,5 +1,5 @@
 import torch
-import torch.nn
+import torch.nn as nn
 import os.path as osp
 import numpy as np
 from . import networks
@@ -30,9 +30,10 @@ class mesh_graph:
         self.loss = networks.get_loss(self.opt).to(self.device)
 
         if self.is_train:
-            # self.optimizer = adabound.AdaBound(
-            #     params=self.net.parameters(), lr=self.opt.lr, final_lr=self.opt.final_lr)
-            self.optimizer = optim.SGD(self.net.parameters(),lr=opt.lr,momentum=opt.momentum,weight_decay=opt.weight_decay)
+            self.optimizer = adabound.AdaBound(
+                params=self.net.parameters(), lr=self.opt.lr, final_lr=self.opt.final_lr)
+            # self.optimizer = optim.SGD(self.net.parameters(
+            # ), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
             self.scheduler = networks.get_scheduler(self.optimizer, self.opt)
         if not self.is_train or opt.continue_train:
             self.load_state(opt.last_epoch)
@@ -41,7 +42,6 @@ class mesh_graph:
         """tests model
         returns: number correct and total number
         """
-        self.net.eval()
         with torch.no_grad():
             out = self.forward()
             # compute number of correct
@@ -75,19 +75,24 @@ class mesh_graph:
 
         gt_label = data.y
         edge_index = data.edge_index
-        nodes_features = data.x
+        if self.opt.batch_size == 1:
+            nodes_features = data.x.unsqueeze(0)
+            neigbour_index = data.pos.unsqueeze(0)
+        else:
+            nodes_features = data.x.view(self.opt.batch_size, 1024, -1)
+            neigbour_index = data.pos.view(self.opt.batch_size, -1, 3)
 
         self.labels = gt_label.to(self.device).long()
         self.edge_index = edge_index.to(self.device).long()
-        self.nodes_features = nodes_features.to(self.device).float()
 
-        # for i in self.nodes_features:
-        #     for j in i:
-        #         if torch.sum(torch.isnan(j), dim=0) > 0:
-        #             print('nan')
+        self.neigbour_index = neigbour_index.to(self.device).long()
+        self.centers = nodes_features[:, :, :3].transpose(1, 2)
+        self.corners = nodes_features[:, :, 3:12].transpose(1, 2)
+        self.normals = nodes_features[:, :, 12:].transpose(1, 2)
+        self.x = data.x.to(self.device).float()
 
     def forward(self):
-        out = self.net(self.nodes_features, self.edge_index)
+        out = self.net(self.x, self.edge_index)
         return out
 
     def backward(self, out):
@@ -98,10 +103,10 @@ class mesh_graph:
         '''
         optimize paramater
         '''
-        self.net.train()
         self.optimizer.zero_grad()
         out = self.forward()
         self.backward(out)
+        nn.utils.clip_grad_norm_(self.net.parameters(), self.opt.grad_clip)
         self.optimizer.step()
 
     def save_network(self, which_epoch):

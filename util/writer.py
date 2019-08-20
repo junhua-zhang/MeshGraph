@@ -58,14 +58,14 @@ class Writer:
                              (epoch, iters, loss.item()))
 
     def plot_loss(self, epoch, i, loss, n):
-        train_data_iter = i + epoch * n
+        train_data_iter = i + (epoch-1) * n
         if self.display:
             self.display.add_scalar(
                 'data/train_loss', loss.item(), train_data_iter)
 
     def plot_acc(self, acc, epoch):
         if self.display:
-            self.display.add_scalar('data/test_acc', acc, epoch)
+            self.display.add_scalar('data/test_acc', acc, epoch-1)
 
     def print_acc(self, epoch, acc):
         """ prints test accuracy to terminal / file """

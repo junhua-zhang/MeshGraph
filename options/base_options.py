@@ -42,7 +42,7 @@ class base_options:
             '--arch', type=str, default='meshconv', help='model arch'
         )
         self.parser.add_argument(
-            '--init_type', type=str, default='xavier', help='network initialization [normal|xavier|kaiming|orthogonal]'
+            '--init_type', type=str, default='kaiming', help='network initialization [normal|xavier|kaiming|orthogonal]'
         )
         self.parser.add_argument(
             '--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.'
@@ -51,7 +51,7 @@ class base_options:
             '--use_fpm',  action='store_true', help='use fpm model to catch feature'
         )
         self.parser.add_argument(
-            '--milestones', default='600,1200', help='milestones for MultiStepLR'
+            '--milestones', default='30,60', help='milestones for MultiStepLR'
         )
 
     def parse(self):
