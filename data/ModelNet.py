@@ -48,7 +48,7 @@ class ModelNet(InMemoryDataset):
         '10':
         'http://vision.princeton.edu/projects/2014/3DShapeNets/ModelNet10.zip',
         '40': 'http://modelnet.cs.princeton.edu/ModelNet40.zip',
-        '40_graph': 'https://drive.google.com/uc?export=download&confirm=QTfF&id=1o9pyskkKMxuomI5BWuLjCG2nSv5iePZz'
+        '40_graph': 'https://drive.google.com/uc?export=download&confirm=HB4c&id=1o9pyskkKMxuomI5BWuLjCG2nSv5iePZz'
     }
 
     def __init__(self,

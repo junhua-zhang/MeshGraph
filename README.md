@@ -27,6 +27,8 @@ docker run --rm -it --runtime=nvidia --shm-size 16G -e DISPLAY=unix$DISPLAY -v /
 
 
 ### 3D Shape Classification on ModelNet40
+- get the dataset if you fail download it from python [[Model40]](https://drive.google.com/uc?export=download&confirm=HB4c&id=1o9pyskkKMxuomI5BWuLjCG2nSv5iePZz)
+- put the zip file in datasets/modelnet40_graph
 
 ```bash 
 cd /meshvertex
@@ -46,6 +48,9 @@ sh script/modelnet40_graph/train.sh
 | Meshnet | Mesh | 91% |
 | Ours with SAGE | Mesh | 94.3% +0.5% |
 - run test
+- get the dataset if you fail download it from python [[Model40]](https://drive.google.com/uc?export=download&confirm=HB4c&id=1o9pyskkKMxuomI5BWuLjCG2nSv5iePZz)
+- put the zip file in datasets/modelnet40_graph
+- download the weight file from [[weights]](https://drive.google.com/file/d/11JOiaTOBCykCYgZKw24qcD6r1Tzz7dvu/view?usp=sharing)  and put it in your ckpt_root/40_graph/ and run 
 ``` bash
 sh script/modelnet40_graph/test.sh 
 ```
