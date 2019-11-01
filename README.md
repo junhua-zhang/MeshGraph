@@ -17,7 +17,7 @@ cd MeshVertexNet
 
 ```bash
 cd docker
-docker build -t your/docker:meshvertex .
+docker build -t your/docker:meshgraph.
 ```
 
 - then run docker image
