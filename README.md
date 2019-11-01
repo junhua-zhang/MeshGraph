@@ -2,7 +2,7 @@
 
 Transfroming Mesh data to Mesh Graph Tology through the idea of Finite Element, Paper is publishing soon.
 ![transfrom](img/1.png)
-![network](img/2.png)
+![network](img/3.png)
 # Getting Started 
 
 ### Installation
