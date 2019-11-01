@@ -58,7 +58,7 @@ class ModelNet(InMemoryDataset):
                  transform=None,
                  pre_transform=None,
                  pre_filter=None):
-        assert name in ['10', '40' , '40_graph']
+        assert name in ['10', '40', '40_graph']
         self.name = name
         self.train = train
         super(ModelNet, self).__init__(root, transform, pre_transform,
@@ -97,7 +97,7 @@ class ModelNet(InMemoryDataset):
             folder = osp.join(self.raw_dir, category, dataset)
             paths = glob.glob('{}/{}_*.npz'.format(folder, category))
             for path in paths:
-                data = read_npz(path,self.train)
+                data = read_npz(path, self.train)
                 data.y = torch.tensor([target])
                 data_list.append(data)
 

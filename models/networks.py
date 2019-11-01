@@ -3,9 +3,10 @@ import torch.nn as nn
 from torch.nn import init
 from torch.optim import lr_scheduler
 import torch.nn.functional as F
-from torch_geometric.nn import GINConv, GraphConv
-from models.layers.struct_conv import MeshMlp
-from models.layers.mesh_net_copy import SpatialDescriptor, StructuralDescriptor, MeshConvolution
+from torch_geometric.nn import GraphConv
+from models.layers.struct_conv import MeshMlp, NormMlp
+from models.layers.mesh_net_with_out_neigbour import SpatialDescriptor, StructuralDescriptor, MeshConvolution
+from models.layers.mesh_graph_conv import NormGraphConv,GINConv#,SpatialDescriptor, StructuralDescriptor, MeshConvolution
 
 
 def init_weights(net, init_type, init_gain):
@@ -67,37 +68,40 @@ def get_scheduler(optimizer, opt):
     return scheduler
 
 
-class MeshGraph(nn.Module):
-    """Some Information about MeshGraph"""
+# class MeshGraph(nn.Module):
+#     """Some Information about MeshGraph"""
 
-    def __init__(self, opt):
-        super(MeshGraph, self).__init__()
-        self.mesh_mlp_256 = MeshMlp(opt, 256)
-        self.gin_conv_256 = GINConv(self.mesh_mlp_256)
+#     def __init__(self, opt):
+#         super(MeshGraph, self).__init__()
+#         self.mesh_mlp_256 = MeshMlp(opt, 256)
+#         self.gin_conv_256 = GINConv(self.mesh_mlp_256)
 
-        # self.graph_conv_64 = GraphConv(1024, 256)
-        # self.graph_conv_64 = GraphConv(256, 64)
+#         # self.graph_conv_64 = GraphConv(1024, 256)
+#         # self.graph_conv_64 = GraphConv(256, 64)
 
-        self.classifier = nn.Sequential(
-            nn.Linear(256, 64),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(64, 40),
-        )
+#         self.classifier = nn.Sequential(
+#             nn.Linear(256, 1024),
+#             nn.ReLU(),
+#             nn.Dropout(p=0.5),
+#             nn.Linear(1024, 256),
+#             nn.ReLU(),
+#             nn.Dropout(p=0.5),
+#             nn.Linear(256, 40),
+#         )
 
-        if opt.use_fpm:
-            self.mesh_mlp_64 = MeshMlp(64)
-            self.mesh_mlp_128 = MeshMlp(128)
-            self.gin_conv_64 = GINConv(self.mesh_mlp_64)
-            self.gin_conv_128 = GINConv(self.mesh_mlp_128)
+#         if opt.use_fpm:
+#             self.mesh_mlp_64 = MeshMlp(64)
+#             self.mesh_mlp_128 = MeshMlp(128)
+#             self.gin_conv_64 = GINConv(self.mesh_mlp_64)
+#             self.gin_conv_128 = GINConv(self.mesh_mlp_128)
 
-    def forward(self, nodes_features, edge_index):
-        x = nodes_features
-        edge_index = edge_index
-        x1 = self.gin_conv_256(x, edge_index)  # 64 256 1024
-        print(x1.size())
-        x1 = torch.max(x1, dim=2)[0]
-        return self.classifier(x1)
+#     def forward(self, nodes_features, edge_index):
+#         x = nodes_features
+#         edge_index = edge_index
+#         x1 = self.gin_conv_256(x, edge_index)  # 64 256 1024
+#         # x1 = x1.view(x1.size(0), -1)
+#         # x1 = torch.max(x1, dim=2)[0]
+#         return self.classifier(x1)
 
 
 # class MeshGraph(nn.Module):
@@ -129,64 +133,7 @@ class MeshGraph(nn.Module):
 #             nn.Linear(256, 40)
 #         )
 
-#     def forward(self, centers, corners, normals, neigbour_index, edge_index):
-#         spatial_fea0 = self.spatial_descriptor(centers)
-#         structural_fea0 = self.structural_descriptor(
-#             corners, normals, neigbour_index)
-
-#         spatial_fea1, structural_fea1 = self.mesh_conv1(
-#             spatial_fea0, structural_fea0, neigbour_index)
-#         spatial_fea2, structural_fea2 = self.mesh_conv2(
-#             spatial_fea1, structural_fea1, neigbour_index)
-
-#         spatial_fea3 = self.fusion_mlp(
-#             torch.cat([spatial_fea2, structural_fea2], 1))
-
-#         fea = self.concat_mlp(
-#             torch.cat([spatial_fea1, spatial_fea2, spatial_fea3], 1))
-
-#         fea = torch.max(fea, dim=2)[0]
-#         fea = fea.reshape(fea.size(0), -1)
-#         fea = self.classifier[:-1](fea)
-#         cls = self.classifier[-1:](fea)
-#         return cls
-
-
-# class MeshGraph(nn.Module):
-#     """Some Information about MeshGraph"""
-
-#     def __init__(self, opt):
-#         super(MeshGraph, self).__init__()
-#         self.spatial_descriptor = SpatialDescriptor()
-#         self.structural_descriptor = StructuralDescriptor()
-
-#         self.mesh_conv1 = MeshConvolution(64, 67, 256, 256)
-#         self.mesh_conv2 = MeshConvolution(256, 256, 512, 512)
-
-#         self.fusion_mlp = nn.Sequential(
-#             nn.Conv1d(1024, 1024, 1),
-#             nn.BatchNorm1d(1024),
-#             nn.ReLU(),
-#         )
-#         self.concat_mlp = nn.Sequential(
-#             nn.Conv1d(1792, 1024, 1),
-#             nn.BatchNorm1d(1024),
-#             nn.ReLU(),
-#         )
-#         self.classifier = nn.Sequential(
-#             nn.Linear(1024, 512),
-#             nn.ReLU(),
-#             nn.Dropout(p=0.5),
-#             nn.Linear(512, 256),
-#             nn.ReLU(),
-#             nn.Dropout(p=0.5),
-#             nn.Linear(256, 40)
-#         )
-
-#     def forward(self, nodes_features, edge_index):
-#         centers = nodes_features[:,:3]
-#         corners = nodes_features[:,3:12]
-#         normals = nodes_features[:,12:]
+#     def forward(self, nodes_features, edge_index, centers, corners, normals, neigbour_index):
 #         spatial_fea0 = self.spatial_descriptor(centers)
 #         structural_fea0 = self.structural_descriptor(
 #             corners, normals)
@@ -195,13 +142,73 @@ class MeshGraph(nn.Module):
 #             spatial_fea0, structural_fea0)
 #         spatial_fea2, structural_fea2 = self.mesh_conv2(
 #             spatial_fea1, structural_fea1)
+
 #         spatial_fea3 = self.fusion_mlp(
 #             torch.cat([spatial_fea2, structural_fea2], 1))
 
 #         fea = self.concat_mlp(
 #             torch.cat([spatial_fea1, spatial_fea2, spatial_fea3], 1))
+
 #         fea = torch.max(fea, dim=2)[0]
 #         fea = fea.reshape(fea.size(0), -1)
 #         fea = self.classifier[:-1](fea)
 #         cls = self.classifier[-1:](fea)
 #         return cls
+
+
+class MeshGraph(nn.Module):
+    """Some Information about MeshGraph"""
+
+    def __init__(self, opt):
+        super(MeshGraph, self).__init__()
+        self.opt = opt
+        self.spatial_descriptor = SpatialDescriptor()
+        self.structural_descriptor = StructuralDescriptor()
+        self.shape_descriptor = NormGraphConv()
+
+        self.mesh_conv1 = MeshConvolution(64, 131, 256, 256)
+        self.mesh_conv2 = MeshConvolution(256, 256, 512, 512)
+        self.fusion_mlp = nn.Sequential(
+            nn.Conv1d(1024, 1024, 1),
+            nn.BatchNorm1d(1024),
+            nn.ReLU(),
+        )
+        self.concat_mlp = nn.Sequential(
+            nn.Conv1d(1792, 1024, 1),
+            nn.BatchNorm1d(1024),
+            nn.ReLU(),
+        )
+        self.classifier = nn.Sequential(
+            nn.Linear(1024, 512),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(256, 40)
+        )
+
+    def forward(self, nodes_features, edge_index, centers, corners, normals, neigbour_index):
+        shape_norm = self.shape_descriptor(
+            nodes_features, edge_index, self.opt)  # n 64 1024
+
+        spatial_fea0 = self.spatial_descriptor(centers)
+        structural_fea0 = self.structural_descriptor(
+            corners, normals)
+
+        spatial_fea1, structural_fea1 = self.mesh_conv1(
+            spatial_fea0, structural_fea0, shape_norm)
+        spatial_fea2, structural_fea2 = self.mesh_conv2(
+            spatial_fea1, structural_fea1, shape_norm)
+
+        spatial_fea3 = self.fusion_mlp(
+            torch.cat([spatial_fea2, structural_fea2], 1))
+
+        fea = self.concat_mlp(
+            torch.cat([spatial_fea1, spatial_fea2, spatial_fea3], 1))
+
+        fea = torch.max(fea, dim=2)[0]
+        fea = fea.reshape(fea.size(0), -1)
+        fea = self.classifier[:-1](fea)
+        cls = self.classifier[-1:](fea)
+        return cls

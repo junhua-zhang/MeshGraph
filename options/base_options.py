@@ -42,7 +42,7 @@ class base_options:
             '--arch', type=str, default='meshconv', help='model arch'
         )
         self.parser.add_argument(
-            '--init_type', type=str, default='kaiming', help='network initialization [normal|xavier|kaiming|orthogonal]'
+            '--init_type', type=str, default='xavier', help='network initialization [normal|xavier|kaiming|orthogonal]'
         )
         self.parser.add_argument(
             '--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.'

@@ -46,7 +46,7 @@ class mesh_graph:
             out = self.forward()
             # compute number of correct
             pred_class = torch.max(out, dim=1)[1]
-            print(pred_class)
+            # print(pred_class)
             label_class = self.labels
             correct = self.get_accuracy(pred_class, label_class)
         return correct, len(label_class)
@@ -77,7 +77,7 @@ class mesh_graph:
         edge_index = data.edge_index
         if self.opt.batch_size == 1:
             nodes_features = data.x.unsqueeze(0)
-            neigbour_index = data.pos.unsqueeze(0)
+            # neigbour_index = data.pos.unsqueeze(0)
         else:
             nodes_features = data.x.view(self.opt.batch_size, 1024, -1)
             neigbour_index = data.pos.view(self.opt.batch_size, -1, 3)
@@ -89,10 +89,11 @@ class mesh_graph:
         self.centers = nodes_features[:, :, :3].transpose(1, 2)
         self.corners = nodes_features[:, :, 3:12].transpose(1, 2)
         self.normals = nodes_features[:, :, 12:].transpose(1, 2)
-        self.x = data.x.to(self.device).float()
+        self.x = data.x[:, -3:].to(self.device).float()
 
     def forward(self):
-        out = self.net(self.x, self.edge_index)
+        out = self.net(self.x, self.edge_index, self.centers,
+                       self.corners, self.normals, self.neigbour_index)
         return out
 
     def backward(self, out):

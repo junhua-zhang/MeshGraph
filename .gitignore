@@ -105,3 +105,6 @@ venv.bak/
 datasets/
 cal_data.py
 runs/
+ckpt/
+ckpt_root/*/*.pth
+demo.py

@@ -18,16 +18,16 @@ class train_options(base_options):
             '--final_lr', default=0.1, type=float, help='final learning rate'
         )
         self.parser.add_argument(
-            '--epoch', type=int, default=150, help='training epoch'
+            '--epoch', type=int, default=200, help='training epoch'
         )
         self.parser.add_argument(
             '--frequency', type=int, default=10, help='training epoch'
         )
         self.parser.add_argument(
-            '--epoch_frequency', type=int, default=10, help='epoch to print'
+            '--epoch_frequency', type=int, default=1, help='epoch to print'
         )
         self.parser.add_argument(
-            '--loop_frequency', type=int, default=10, help='iters epoch to print'
+            '--loop_frequency', type=int, default=100, help='iters epoch to print'
         )
         self.parser.add_argument(
             '--test_frequency', type=int, default=1, help='test epoch'

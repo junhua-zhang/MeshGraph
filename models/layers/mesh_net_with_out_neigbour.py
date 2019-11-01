@@ -95,9 +95,9 @@ class StructuralDescriptor(nn.Module):
         super(StructuralDescriptor, self).__init__()
 
         self.FRC = FaceRotateConvolution()
-        self.FKC = FaceKernelCorrelation(64,0.2)
+        self.FKC = FaceKernelCorrelation(64, 0.2)
         self.structural_mlp = nn.Sequential(
-            nn.Conv1d(64 + 3 + 64, 131, 1),
+            nn.Conv1d(64 + 3, 131, 1),
             nn.BatchNorm1d(131),
             nn.ReLU(),
             nn.Conv1d(131, 131, 1),
@@ -105,11 +105,11 @@ class StructuralDescriptor(nn.Module):
             nn.ReLU(),
         )
 
-    def forward(self, corners, normals, neighbor_index):
+    def forward(self, corners, normals):
         structural_fea1 = self.FRC(corners)
-        structural_fea2 = self.FKC(normals, neighbor_index)
+        # structural_fea2 = self.FKC(normals, neighbor_index)
 
-        return self.structural_mlp(torch.cat([structural_fea1, structural_fea2, normals], 1))
+        return self.structural_mlp(torch.cat([structural_fea1, normals], 1))
 
 
 class MeshConvolution(nn.Module):
@@ -131,51 +131,59 @@ class MeshConvolution(nn.Module):
             nn.ReLU(),
         )
 
-        if self.aggregation_method == 'Concat':
-            self.concat_mlp = nn.Sequential(
-                nn.Conv2d(self.structural_in_channel * 2,
-                          self.structural_in_channel, 1),
-                nn.BatchNorm2d(self.structural_in_channel),
-                nn.ReLU(),
-            )
+        # if self.aggregation_method == 'Concat':
+        #     self.concat_mlp = nn.Sequential(
+        #         nn.Conv2d(self.structural_in_channel * 2,
+        #                   self.structural_in_channel, 1),
+        #         nn.BatchNorm2d(self.structural_in_channel),
+        #         nn.ReLU(),
+        #     )
+
+        # self.concat_mlp = nn.Sequential(
+        #     nn.Conv1d(self.structural_in_channel,
+        #               self.structural_out_channel, 1),
+        #     nn.BatchNorm1d(self.spatial_out_channel),
+        #     nn.ReLU(),
+        # )
 
         self.aggregation_mlp = nn.Sequential(
-            nn.Conv1d(self.structural_in_channel,
+            nn.Conv1d(self.structural_in_channel + 64,
                       self.structural_out_channel, 1),
             nn.BatchNorm1d(self.structural_out_channel),
             nn.ReLU(),
         )
 
-    def forward(self, spatial_fea, structural_fea, neighbor_index):
+    def forward(self, spatial_fea, structural_fea, shape_norm):
         b, _, n = spatial_fea.size()
 
         # Combination
         spatial_fea = self.combination_mlp(
             torch.cat([spatial_fea, structural_fea], 1))
 
-        # Aggregation
-        if self.aggregation_method == 'Concat':
-            structural_fea = torch.cat([structural_fea.unsqueeze(3).expand(-1, -1, -1, 3),
-                                        torch.gather(structural_fea.unsqueeze(3).expand(-1, -1, -1, 3), 2,
-                                                     neighbor_index.unsqueeze(1).expand(-1, self.structural_in_channel,
-                                                                                        -1, -1))], 1)
-            structural_fea = self.concat_mlp(structural_fea)
-            structural_fea = torch.max(structural_fea, 3)[0]
+        # # Aggregation
+        # if self.aggregation_method == 'Concat':
+        #     structural_fea = torch.cat([structural_fea.unsqueeze(3).expand(-1, -1, -1, 3),
+        #                                 torch.gather(structural_fea.unsqueeze(3).expand(-1, -1, -1, 3), 2,
+        #                                              neighbor_index.unsqueeze(1).expand(-1, self.structural_in_channel,
+        #                                                                                 -1, -1))], 1)
+        #     structural_fea = self.concat_mlp(structural_fea)
+        #     structural_fea = torch.max(structural_fea, 3)[0]
 
-        elif self.aggregation_method == 'Max':
-            structural_fea = torch.cat([structural_fea.unsqueeze(3),
-                                        torch.gather(structural_fea.unsqueeze(3).expand(-1, -1, -1, 3), 2,
-                                                     neighbor_index.unsqueeze(1).expand(-1, self.structural_in_channel,
-                                                                                        -1, -1))], 3)
-            structural_fea = torch.max(structural_fea, 3)[0]
+        # elif self.aggregation_method == 'Max':
+        #     structural_fea = torch.cat([structural_fea.unsqueeze(3),
+        #                                 torch.gather(structural_fea.unsqueeze(3).expand(-1, -1, -1, 3), 2,
+        #                                              neighbor_index.unsqueeze(1).expand(-1, self.structural_in_channel,
+        #                                                                                 -1, -1))], 3)
+        #     structural_fea = torch.max(structural_fea, 3)[0]
 
-        elif self.aggregation_method == 'Average':
-            structural_fea = torch.cat([structural_fea.unsqueeze(3),
-                                        torch.gather(structural_fea.unsqueeze(3).expand(-1, -1, -1, 3), 2,
-                                                     neighbor_index.unsqueeze(1).expand(-1, self.structural_in_channel,
-                                                                                        -1, -1))], 3)
-            structural_fea = torch.sum(structural_fea, dim=3) / 4
+        # elif self.aggregation_method == 'Average':
+        #     structural_fea = torch.cat([structural_fea.unsqueeze(3),
+        #                                 torch.gather(structural_fea.unsqueeze(3).expand(-1, -1, -1, 3), 2,
+        #                                              neighbor_index.unsqueeze(1).expand(-1, self.structural_in_channel,
+        #                                                                                 -1, -1))], 3)
+        #     structural_fea = torch.sum(structural_fea, dim=3) / 4
 
-        structural_fea = self.aggregation_mlp(structural_fea)
+        structural_fea = self.aggregation_mlp(
+            torch.cat([structural_fea, shape_norm], dim=1))  # n 64+3+64
 
         return spatial_fea, structural_fea

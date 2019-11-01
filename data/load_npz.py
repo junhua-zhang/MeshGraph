@@ -41,7 +41,7 @@ def parse_npz(f, train):
         1, gather_index).view(-1, 2).permute(1, 0)
 
     # reorganize
-    face = face.permute(1, 0).contiguous()
+    face = face.permute(1, 0)
     centers, corners, normals = face[:3], face[3:12], face[12:]
     corners = corners - torch.cat([centers, centers, centers], 0)
 

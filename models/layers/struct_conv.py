@@ -79,7 +79,6 @@ class MeshMlp(nn.Module):
 
     def forward(self, x):
         # x: batch_size*15,1024
-        print(x.size())
         data = x.view(self.opt.batch_size, -1, 15).transpose(1, 2)
         point_feature = self.pc(x, self.opt)  # n 64 1024
         face_feature = self.fvc(x, self.opt)  # n 64 1024
@@ -89,3 +88,22 @@ class MeshMlp(nn.Module):
             , dim=1
         )
         return self.mlp(fusion_feature)  # n 256 1024
+
+
+class NormMlp(nn.Module):
+    def __init__(self, opt):
+        super(NormMlp, self).__init__()
+        self.opt = opt
+        self.extra_mlp = nn.Sequential(
+            nn.Conv1d(3, 64, 1),
+            nn.BatchNorm1d(64),
+            nn.ReLU(),
+            nn.Conv1d(64, 64, 1),
+            nn.BatchNorm1d(64),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        data = x.view(self.opt.batch_size, -1, 15).transpose(1, 2)
+        norm = data[:, 12:]
+        return self.extra_mlp(norm)  # n 64 1024

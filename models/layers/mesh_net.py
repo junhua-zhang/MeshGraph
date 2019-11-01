@@ -56,18 +56,18 @@ class StructuralDescriptor(nn.Module):
 
         self.FRC = FaceRotateConvolution()
         self.structural_mlp = nn.Sequential(
-            nn.Conv1d(67, 67, 1),
-            nn.BatchNorm1d(67),
+            nn.Conv1d(64+3+64, 131, 1),
+            nn.BatchNorm1d(131),
             nn.ReLU(),
-            nn.Conv1d(67, 67, 1),
-            nn.BatchNorm1d(67),
+            nn.Conv1d(131, 131, 1),
+            nn.BatchNorm1d(131),
             nn.ReLU(),
         )
 
-    def forward(self, corners, normals):
+    def forward(self, corners, normals, extra_norm):
         structural_fea1 = self.FRC(corners)
 
-        return self.structural_mlp(torch.cat([structural_fea1, normals], 1))
+        return self.structural_mlp(torch.cat([structural_fea1, normals, extra_norm], 1))
 
 
 class MeshConvolution(nn.Module):
@@ -83,18 +83,18 @@ class MeshConvolution(nn.Module):
         self.combination_mlp = nn.Sequential(
             nn.Conv1d(self.spatial_in_channel +
                       self.structural_in_channel, self.spatial_out_channel, 1),
-            nn.BatchNorm1d(self.spatial_out_channel),
+            nn.GroupNorm(32, self.spatial_out_channel),
             nn.ReLU(),
         )
 
         self.aggregation_mlp = nn.Sequential(
             nn.Conv1d(self.structural_in_channel,
                       self.structural_out_channel, 1),
-            nn.BatchNorm1d(self.structural_out_channel),
+            nn.GroupNorm(32, self.structural_out_channel),
             nn.ReLU(),
         )
 
-    def forward(self, spatial_fea, structural_fea):
+    def forward(self, spatial_fea, structural_fea, _):
         b, _, n = spatial_fea.size()
 
         # Combination
