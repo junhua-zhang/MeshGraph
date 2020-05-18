@@ -6,4 +6,5 @@ python train.py \
 --name 40_graph \
 --batch_size 64 \
 --nclasses 40 \
---epoch 300
+--epoch 300 \
+--init_type orthogonal

@@ -40,11 +40,27 @@ def parse_npz(f, train):
     edge_index = torch.cat([neighbor_index, index], dim=1).gather(
         1, gather_index).view(-1, 2).permute(1, 0)
 
+    
     # reorganize
     face = face.permute(1, 0)
     centers, corners, normals = face[:3], face[3:12], face[12:]
+
+
+    # # get the sod of each faces
+    # '''
+    # w(e) = cos(ni/||ni|| *  nj/||nj||)^-1
+    # '''
+    # start_point, end_point = edge_index[0, :], edge_index[1, :]
+
+    # print(start_point.size())
+    # print(normals.size())
+
+
+
+
     corners = corners - torch.cat([centers, centers, centers], 0)
 
     features = torch.cat([centers, corners, normals], dim=0).permute(1, 0)
+
     data = Data(x=features, edge_index=edge_index, pos=neighbor_index)
     return data

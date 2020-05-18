@@ -106,5 +106,9 @@ datasets/
 cal_data.py
 runs/
 ckpt/
-ckpt_root/*/*.pth
+ckpt_root/
 demo.py
+*.png
+*.jpg
+*.txt
+test*

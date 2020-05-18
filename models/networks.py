@@ -6,7 +6,8 @@ import torch.nn.functional as F
 from torch_geometric.nn import GraphConv
 from models.layers.struct_conv import MeshMlp, NormMlp
 from models.layers.mesh_net_with_out_neigbour import SpatialDescriptor, StructuralDescriptor, MeshConvolution
-from models.layers.mesh_graph_conv import NormGraphConv,GINConv#,SpatialDescriptor, StructuralDescriptor, MeshConvolution
+# ,SpatialDescriptor, StructuralDescriptor, MeshConvolution
+from models.layers.mesh_graph_conv import NormGraphConv, GINConv
 
 
 def init_weights(net, init_type, init_gain):
@@ -211,4 +212,4 @@ class MeshGraph(nn.Module):
         fea = fea.reshape(fea.size(0), -1)
         fea = self.classifier[:-1](fea)
         cls = self.classifier[-1:](fea)
-        return cls
+        return cls, fea

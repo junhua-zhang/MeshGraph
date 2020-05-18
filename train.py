@@ -47,6 +47,9 @@ if __name__ == '__main__':
         if epoch % opt.epoch_frequency == 0:
             print('saving the model at the end of epoch %d, iters %d' %
                   (epoch, total_steps))
+            if (epoch-1) % 20 == 0:
+                model.log_history_and_plot(writer, epoch, count)
+                model.log_features_and_plot(epoch, count)
             model.save_network('latest')
             model.save_network(epoch)
 
@@ -54,4 +57,5 @@ if __name__ == '__main__':
             acc = run_test(epoch)
             writer.plot_acc(acc, epoch)
         # break
+    wait = input("input")
     writer.close()

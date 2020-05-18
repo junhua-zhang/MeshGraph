@@ -1,5 +1,12 @@
 import os
 import time
+import random
+import numpy as np
+import torch
+import torchvision.models
+import torch.nn as nn
+from torchvision import datasets, transforms
+import hiddenlayer as hl
 
 try:
     from tensorboardX import SummaryWriter
@@ -25,6 +32,12 @@ class Writer:
         self.start_logs()
         self.nexamples = 0
         self.ncorrect = 0
+
+        # A History object to store metrics
+        self.history = hl.History()
+
+        # A Canvas object to draw the metrics
+        self.canvas = hl.Canvas()
 
     def start_logs(self):
         ''' create log file'''
@@ -74,6 +87,12 @@ class Writer:
         print(message)
         with open(self.test_loss, "a") as log_file:
             log_file.write('%s\n' % message)
+
+    def history_log(self, epoch, batch, weight):
+        self.history.log((epoch, batch), global_feature_wight=weight)
+
+    def draw_hist(self):
+        self.canvas.draw_hist(self.history["global_feature_wight"])
 
     @property
     def acc(self):
