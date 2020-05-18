@@ -1,13 +1,18 @@
 import torch
 import torch.nn as nn
+import os
 import os.path as osp
 import numpy as np
 from . import networks
 import torch.optim as optim
 from models.optimizer import adabound
 from torch_geometric.utils import remove_self_loops, contains_self_loops, contains_isolated_nodes
+import hiddenlayer as hl
+import cv2
 
-
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUTPUT_DIR = os.path.join(ROOT_DIR, "feature_img")
+print(OUTPUT_DIR)
 class mesh_graph:
     def __init__(self, opt):
         self.opt = opt
@@ -30,20 +35,25 @@ class mesh_graph:
         self.loss = networks.get_loss(self.opt).to(self.device)
 
         if self.is_train:
-            self.optimizer = adabound.AdaBound(
-                params=self.net.parameters(), lr=self.opt.lr, final_lr=self.opt.final_lr)
-            # self.optimizer = optim.SGD(self.net.parameters(
-            # ), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
+            # self.optimizer = adabound.AdaBound(
+            #     params=self.net.parameters(), lr=self.opt.lr, final_lr=self.opt.final_lr)
+            self.optimizer = optim.SGD(self.net.parameters(
+            ), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
             self.scheduler = networks.get_scheduler(self.optimizer, self.opt)
         if not self.is_train or opt.continue_train:
             self.load_state(opt.last_epoch)
+        
+        # A History object to store metrics
+        self.history = hl.History()
+        # A Canvas object to draw the metrics
+        self.canvas = hl.Canvas()
 
     def test(self):
         """tests model
         returns: number correct and total number
         """
         with torch.no_grad():
-            out = self.forward()
+            out, fea = self.forward()
             # compute number of correct
             pred_class = torch.max(out, dim=1)[1]
             # print(pred_class)
@@ -96,7 +106,7 @@ class mesh_graph:
                        self.corners, self.normals, self.neigbour_index)
         return out
 
-    def backward(self, out):
+    def backward(self, out, fea):
         self.loss_val = self.loss(out, self.labels)
         self.loss_val.backward()
 
@@ -105,8 +115,9 @@ class mesh_graph:
         optimize paramater
         '''
         self.optimizer.zero_grad()
-        out = self.forward()
-        self.backward(out)
+        out, fea = self.forward()
+        # print(self.net.module.concat_mlp[0].weight)
+        self.backward(out, fea)
         nn.utils.clip_grad_norm_(self.net.parameters(), self.opt.grad_clip)
         self.optimizer.step()
 
@@ -121,3 +132,29 @@ class mesh_graph:
             self.net.cuda(self.cuda[0])
         else:
             torch.save(self.net.cpu().state_dict(), save_path)
+
+    def log_history_and_plot(self, writer, epoch, batch):
+        writer.history_log(epoch, batch, self.net.module.concat_mlp[0].weight)
+        writer.draw_hist()
+
+    def log_features_and_plot(self, epoch, batch):
+        out, fea = self.forward()
+        labels = self.labels
+        fea_norm_numpy = fea.cpu().detach().numpy()
+        cv_img = deprocess_image(fea_norm_numpy)
+        im_color = cv2.applyColorMap(cv_img, cv2.COLORMAP_JET)
+        cv2.imwrite(os.path.join(OUTPUT_DIR, "%d_epoch1.png" % epoch),im_color)
+        # add canvas
+        
+        # self.history.log(epoch, image=im_color)
+        # # self.canvas.draw_image(self.history["image"])
+        # self.canvas.save(os.path.join(OUTPUT_DIR, "%d_epoch.png" % epoch))
+
+def deprocess_image(img):
+    """ see https://github.com/jacobgil/keras-grad-cam/blob/master/grad-cam.py#L65 """
+    img = img - np.mean(img)
+    img = img / (np.std(img) + 1e-5)
+    img = img * 0.1
+    img = img + 0.5
+    img = np.clip(img, 0, 1)
+    return np.uint8(img*255)
